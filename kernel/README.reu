@@ -1,0 +1,18 @@
+Support for REU - external (DMA) memory expansion
+-------------------------------------------------
+
+Support for REU is new and may cause some trouble.
+REU support might interfere with software that uses NMI or IRQ
+and relies on short interrupt latency. A possible workaround would be
+to restrict DMA to 43 bytes (same amount of DMA the VIC does).
+
+REU memory map:
+
+ $000000 - $000400 (1k) temporary buffer space (fast scrolling,...)
+ $000400 - $0004ff constants (for fast fill)
+ $000500 ...  (unused)
+
+REU is currently used to:
+ - clear the screen
+ - scroll portions of the screen
+ - copy stack and zeropage when switching context

@@ -1,0 +1,32 @@
+This should grow to a standard library for use in application code
+lld has to be improved to support multiple code segments (code, initialised
+data, uninitialised data)
+
+Table of functions and how they are portioned:
+
+libc_malloc   ( A/Y=size ), returns A/Y=pointer
+
+Allocate A/Y bytes of internal memory. On success a pointer to the
+allocated memory is returned. If there isn't enough memory left, the
+function either returns with error (carry=1, A=lerr_outofmem) or
+makes your application exit with an out_of_memory error (depends on 
+library configuration -> see "lib_conf.h")
+---
+libc_free     ( A/Y=pointer ), returns nothing
+
+Free memory allocated with libc_malloc.
+---
+libc_remalloc ( A/Y=pointer, (X)=new_size ), returns A/Y=pointer
+
+Change the size of the memory block allocated with malloc. Returns a
+pointer to the new memory location.
+---
+print_hex8    ( A=value )
+
+Print value in A in hexadecimal form to stdout
+---
+sreadline     ( userzp=pointer to buffer, Y=size of buffer ), 
+              returns c=error, Y=length of line
+
+Read a single line from standard input (line editing is possible)
+and return with error or the length of the line in Y.

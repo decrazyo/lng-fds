@@ -1,0 +1,122 @@
+
+    * minor changes in vdc_console.s
+	beq + -> .byte $2c
+	some optimizations in console-switching code, few bytes saved
+    * start of this log
+20.12.1999 
+
+    * keyboard_init.s and keyboard.s in kernel/c128
+      there are only little changes, so this could go to c64 version into
+      clauses
+31.12.1999
+
+    * applied approved keyboard.s, keyboard_init.s - again common
+    * replaced reset.s into new one
+    * changed larchfc64->larchfc128 at the end of reset.s (marked)
+    * changed #if[n]def c128 -> C128
+    * vdc_console.s again tweaked - around direct I/O 
+	- addresses section reordered (so less bit $xxxx are for more often called functions)
+	- in address store few bytes and cycles saved
+07.01.2000
+
+    * added include/mmu.h file
+	- appropriate changes in reset.s, vdcconsole_init.s, reboot.s and c128.h
+	- didn't change macros for GET/SETUSERCONF as I don't know if this works recursively (check it)    
+
+    * hardware MMU stack swap
+	+ change tasksw-128.s
+	+ have to change also addtask.s 
+	+ check bootstrap.s (add_task_simple -> addtask.s) (seems ok.)
+	+ change makefiles apropriately
+10.01.2000
+
+    * new tasksw doesn't work
+11.01.2000
+
+    * some eor#$ff changes in tasksw on Daniel's information
+	+ still don't work, but at least there's init prompt (then jam or hang)
+	+ have to check signal.s also!!!
+12.01.2000
+
+    * new lines in c128.h and c64.h - MEMCONF_FONT, c128.h heavily changed :)
+    * removed all #ifdef's from vdc_init_console.s - cleaned up that shit
+17.01.2000
+
+    * finally fixed tasksw - works and already in #ifdef's clauses
+18.01.2000
+
+    * fixed signal.s stuff, works at its best
+    * on expanded C128 idle_task stack have to be in the very same bank,
+      otherwise something screws up (I mean Marko Makela's expansion)
+    * C128ish stack handling is enabled and working
+19.01.2000
+
+    * in kernal/todo there's fs_iec_burst.s, which should work in burst on C128
+      (try to better disassemble before any tests, don't want to tear hair out out of my head...)
+24.01.2000
+
+    * moved code from tasksw.s to $(arch)/zpage/stack/in/out files to fix all relations
+      between REU and MMU on C128
+30.01.2000
+
+    * due to problems with SCPU there's new MMU_STACK option instead of #ifdef C128 in
+      addtask.s, signal.s, tasksw.s and $(arch)/stackin.s and stackout.s
+      config.h in kernel/c128 was changed
+      in bootstrap.s new text information
+09.02.2000
+
+    * fixed also MMU_STACK in $(arch)/zpagein.s - bug that caused crash
+    * finally have confirmation that HAVE_256K is actually needed on all C128s...
+      this option is currently removed, but will return in glory!
+      MMU_P1H is now only set to =1 in kernel/c128/reset.s
+      touched files: tasksw.s bootstrap.s $(arch)/stackin.s+zpagein.s addtask.s 
+      touched kernel/c128/README, /README.ytm
+10.02.2000
+
+    * b-cs - benchmark for taskswitching (from Daniel)
+    * new files - pcatkeyboard.s and pcatkeyboard_init.s, both somewhat derived from
+      original keyboard handler
+      new options - PCAT_KEYB (to enable that keyboard only) and temporary
+      EXPERIMENTAL_KEYBOARD (for bidirectional stuff, lighting LEDs etc., will be either
+      fixed to work or removed forever :-)
+      touched: c64/config.h, bootstrap.s, kernel/keyboard.s
+      (c128 will be added later, when it will be debugged)
+    * changed $(arch)/reuzpageout.s - nothing serious, but only added some unneeded bytes
+      (MMU_STACK thing)
+11.02.2000
+
+    * changed kernal/c64/c64.h - SETMEMCONF cleared hinibble of 1, keyboard was instantly
+      resetted
+    * removed EXPERIMENTAL_KEYBOARD, until sender code will be reliable (or until I'll know
+      when it's reliable)
+    * almost full implementation of pc/at keyboard functions (see todo at top of source)
+12.02.2000
+
+    * changed kernal/c128/c128.h as c64 one
+13.02.2000
+
+    * b-co - benchmark for console/pipe output (from Daniel)
+26.02.2000
+
+    * new LNG0_17-pre
+    * changes for PCAT @ VIC IRQs but it sucks for now, no mention here (look @ PCAT.ChangeLog)
+27.02.2000
+
+    * small speed optimization in vdc_console.s in vdcsetdataaddy (saved ~15 cycles, lost 10 bytes)
+	(gave boost from 2650 to 2890 = ~10%)
+    * keyboard.s: modifiers support (caps, alt, other), not only C128, C64 combination can be binded too
+    * keyboard.h modified: added new keyb_xxx flags (caps, alt, ex...)
+    * keyboard_init.h : changed version to 1.1 for C128
+    * changed files: include/keyboard.h kernel/c64/{keyboard_init,keyboard,vdc_console}.s
+	- check that stuff in C64 configuration
+14.05.2000
+
+    * small optimization in C128 version of signal.s and addtask.s (same)
+15.05.2000
+
+    * 1st tries at 64net/2 filesystem support, currently in kernel/todo/fs_64net2.s
+04.06.2000
+
+    * sync with CVS repo on sourceforge.net, this log will not be maintained any longer,
+      CVS does this automatically
+13.09.2000

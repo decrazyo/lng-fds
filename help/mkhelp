@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# this script updates htlp.html to include
+# a list off all available help topics
+# (help.html mostly is a copy of help_template)
+
+(
+  cat help_template
+  for FILE in *.html
+  do
+    NAME=`echo $FILE|cut -d"." -f1`
+    printf "<a href=\"$FILE\">$NAME</a> "
+  done
+  printf "\n<p></p></body></html>\n"
+) >help.html

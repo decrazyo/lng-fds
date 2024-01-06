@@ -1,0 +1,41 @@
+#!/bin/sh
+# preprocess all source files (lupo) without removing comments, then
+# extract all lines containing "ZEROpage:"
+# process all that lines, they contain variable names and number of 
+# zeropage bytes to allocate ... all summed up builds the file zp.h
+
+# NOTE: zeropage assignment might change, when the compile options are
+#       changed!
+
+if [ -f zp.h ]; then rm zp.h; fi
+if [ -f zpreq.txt ]; then rm zpreq.txt; fi
+
+touch ../include/zp.h
+
+for FILE in $*
+do 
+  lupo -rq $FILE -o tmp.s
+  grep -h "ZEROpage:" tmp.s >> zpreq.txt
+done
+rm tmp.s
+
+ADR=21  # is hex $15
+
+cat zpreq.txt | ( 
+  while read NIX1 NIX2 NAME LENGTH
+  do
+    echo "#define $NAME $ADR ; len=$LENGTH"
+    ADR=`expr $ADR + $LENGTH`
+  done
+
+  rm zpreq.txt
+
+  # ADR must be less than 104 !!
+  if [ "$ADR" -ge 96 ]; then
+    echo Too many zeropage requests >&2
+    exit 1
+  else
+    echo Made `expr $ADR - 21` of 75 possible zeropage assignments >&2
+  fi
+) > ../include/zp.h
+

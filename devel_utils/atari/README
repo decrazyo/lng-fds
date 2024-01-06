@@ -1,0 +1,34 @@
+
+The proper way to build Atari bootdisk you should go back to top level directory
+and do:
+  make devel
+  make
+  make package
+Then you will have binatari/ directory with 'atari.bin' file that can be loaded
+and executed from Atari DOS and pkg/ directory with a bootable Atari disk image.
+As an alternative you can use make.sh script from this directory to build a disk
+image with MyDOS.
+
+Some tools from Internet that I have gathered here:
+
+femul-1.4.c	- every Atari poweruser knows what's that for :) (find in source
+		  code the port ttyS[0-4] and change it to correct one before
+		  compiling)
+
+unix2atr-0.9.c	- I use it to move atari.bin to a disk image so I can load it
+		  on Real Machine (tm) from DOS
+
+binload-2.5.c	- Atari binary format analyzer
+
+atr2unix-1.2.c	- for getting files out of .atr
+
+makeimage.c	- to make atari.bin file out of boot.atari and lunix.atari
+
+dos25/		- DOS.SYS, DUP.SYS
+mydos/		- DOS.SYS, DUP.SYS (actually, working)
+
+Maciej Witkowiak
+<ytm@elysium.pl>
+27.12.2000
+17.09.2001
+23.11.2002

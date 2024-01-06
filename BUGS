@@ -1,0 +1,22 @@
+(to-fix-list)
+- Mixed TCP/ICMP traffic sometimes causes the machine to hang
+
+- on C128 PPP is buggy and SLIP doesn't work at all - are ppp,slip,tcpip
+  free from c64-specific code? does mmu_stack matter?
+
+- bug in atari tasksw.s - lk_timer stuff should be affected _only_ if IRQ source was timer,
+  now it is decremented on both timer and keyboard interrupts
+  fix is obvious but I want to test it on a real machine
+
+- rs232std seems not to operate well with the TCP/IP code
+
+- ftp sometimes has problems with longer file names, it seems to
+  download the file but in fact doesn't save the received data to disc
+
+- parent process' environment PWD is not changed with cd tool
+
+- hangs on atari 130xe due to PIA init
+
+- lunixrc is only on disk image, not in package release
+
+- sh treats whitespace on the left side as part of the command name

@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="generator" content="HTML Tidy, see www.w3.org" />
+<title>date</title>
+</head>
+<body>
+usage: date [option]
+
+<p>Date prints weekday,date,time and timezone to standard output. 
+Date relies on a RTC module to have access to the current time. 
+Available RTC modules are:</p>
+
+<p>
+ciartc - software RTC using the TOD function of CIA1<br>
+dcf77 - driver for the DCF77 hardware<br>
+smwrtc - driver for a Smart Watch chip hooked to cia1 joystick port 2.
+</p>
+
+<p>Options:
+-t hh:mm:ss.tt  set time<br>
+-d ccyy.mm.dd  set date<br>
+-w ww  set weekday<br>
+-z shhmm  set timezone, s is + or -<br>
+-u print time in unix format<br>
+-n print time in ntp format<br>
+</p>
+
+</body>
+</html>

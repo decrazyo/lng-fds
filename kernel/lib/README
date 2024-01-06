@@ -1,0 +1,23 @@
+Kernel-Functions, that could reside in a library:
+
+ *  0 lkf_hook_alert
+ *  0 lkf_hook_irq (change to console driver)
+ *  4 lkf_hook_nmi
+ *  2 lkf_mpalloc  (used by forkto only)
+ *  2 lkf_getipid (user in sendsignal only)
+ *  0 lkf_addtask (user by forkto only)
+   15 lkf_set_zpsize (needs small change in error.s)
+ *  3 lkf_wait
+ *  1 lkf_sendsignal
+ *  1 lkf_signal
+ *  2 lkf_ufd_open
+ *  3 lkf_popen
+ *  3 lkf_forkto
+ *  6 lkf_add_module
+    9 lkf_get_moduleif
+   99 lkf_strout
+
+ |  |
+ |  usage
+ |
+ suggested for lib

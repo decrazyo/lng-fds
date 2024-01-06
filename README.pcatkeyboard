@@ -1,0 +1,82 @@
+
+APPENDIX:   BUILDING AT-KEYBOARD INTERFACE FOR C64:
+===================================================
+
+
+parts list
+----------
+. AT keyboard female connector. It has five ordered pin-holes.
+. Datasette port connector. If you can't find, half of an user port conn is Ok.
+. Some wire and a soldering iron...
+
+
+
+
+front face views of the port and connector:
+-------------------------------------------
+
+
+Keyboard Connector:
+-------------------
+
+
+       --v--
+      /     \
+     /       \
+   3 Io     oI 1
+     \ o   o / 
+    5 \  o  / 4
+       -----
+         2
+
++5pin 180 deg DIN (AT)          6pin MINIDIN (PS/2)
++----------------               ------------
++                                
++                                    _
++       (2)      1 CLOCK          (5) (6)        1 DATA
++    (5)   (4)   2 DATA              |           2 
++   (3)     (1)  3              (3)     (4)      3 GND
++                4 GND                           4 +5V
++                5 5V             (1) (2)        5 CLOCK
++                                                6
++
++ NOTE that the numbers below (connections) for DIN are for plug!
++
++ Maciej Witkowiak
++
+
+
+Datasette Port:
+---------------
+
+
+   A B C D E F
+   - -I- - - -
+
+
+
+And the connections:
+--------------------
+
+
+      A--4
+      
+      B--5
+
+    D,E--1     clock line (D is used as an interrupt source)
+
+      F--2     data line
+
+
+
+   That's all for the hardware.
+
+
+
+Ilker Ficicilar
+filker@newton.physics.metu.edu.tr
+c068214@orca.cc.metu.edu.tr
+http://www.physics.metu.edu.tr/~filker/cbm.html
+
+
+---

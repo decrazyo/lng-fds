@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="generator" content="HTML Tidy, see www.w3.org" />
+<title>buf</title>
+</head>
+<body>
+Usage: buf
+
+<p>Buf is a quite simple application. Buf reads from standard input
+and tries to keep everything in memory until EOF (end of file).
+After receiving an EOF buf prints all data from memory to standard
+output.</p>
+
+<p>I used buf to receive text pasted into an LNG window when
+running a remote session (telnet from my PC to LNG), because it
+showed up that pasting directly into an LNG file (using "tee")
+degraded TCP/IP performance a lot. I suggest to use "buf!tee"
+instead.</p>
+
+<p>An other example: "cat file1!buf!tee file2" is usually faster
+than "cp file1 file2" but doesn't work for huge files.</p>
+</body>
+</html>
+

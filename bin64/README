@@ -1,0 +1,15 @@
+transfer lng.c64 to your Commodore64, insert a empty (formatted) disk
+in drive 8 and run it, it will create a (hopefully :) working
+LUnix disk
+
+Run LUnix by loading "loader",8 + run
+
+If this doe not work (maybe, because you want to use a different
+set of boot.c64/lunix.c64 files) try it by hand:
+
+load "boot.c64",8,1
+...
+load "lunix.c64",8,1
+...
+sys 4096
+

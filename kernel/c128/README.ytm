@@ -1,0 +1,78 @@
+
+PORTING SCHEDULE (w/o order)
+    + whole keyboard scan (see ACE source for inspiration)
+    + taskswitching
+    - I/O w/ burst
+	+ reassemble C128 kernal
+	- fix CIA1 timer A thing
+	- check it
+    - bank ability
+	- memory allocation
+	- memory configurations
+
+BUGS
++ there's a bug in tasksw.s when entering idle_task on 256k C128s - stack bank is switched
+  in wrong place (if _is_ switched), so I moved idle_task stack to $1d000, where it is even
+  more unused ); It seems that stack bank is switched by hardware a bit too late or sth.
+  I need feedback if this happens on other computers, it might be my hardware mistake in
+  expansion...
+  in c128/config.h - HAVE_256K definition controls workaround of this
+(above fixed - HAVE_256K was needed on all real (non-emulated) c128s)
+
+TODO list
+
+- scroll-back feature for VDC consoles? (use that memory, or make 6/8 consoles)
+- check if burst I/O with 15[78]1 might be used, how to and utilize it
+    - 2 flags per disk device: is_capable and code_or_data_load_flag
+    - seems that it works only with 1 opened file, needs additional wrapper around fgetc
+      (2 bytes of t&s each 254 bytes) and will usable only from code loader
+
+MEMORY LAYOUT
+
+(currently not everything is true)
+bank0
+    $0000-$00ff	- zpage, always common
+    $0100-$01ff - task stack (in CPU addr. space) but really this is unused, last 10 (or few more)
+		  bytes are used by idle_task and irq when system is in idle state
+    $0200-$ffff - like in C64
+bank1
+    $0000-$1fff - 32 pages - one stack page for each task
+    $2000-$ffff - unused	($d000-$d0ff might be used - read BUGS)
+bank2,3,4,5,6,7
+		  unused
+
+
+BANK ABILITY
+
+I've dropped the idea of sharing only 1k of jumptable, and Daniel dropped the idea of jumptable.
+Current idea is to have kernel in lower 16K, shareable among all banks, where together with
+kernel there is all needed data. Taskswitcher reads task's bank_byte from TSP and changes the
+memconfig. Memory in bank 1 under the first 8K is used by task's stacks (relocated by MMU),
+second 8K is free to use.
+It's not clear, whether stack is relocatable to banks >1, but IIRG it works in banks 2, 3 in
+expansion by Marko Makela.
+Memory allocation can be quickly hacked by getting task's (current) bank and automodifying
+the tables' adresses in the kernel code. This way there's no checking the current bank and memory
+is always allocated in task's bank.
+
+12.01.2000
+
+SOME NOTES
+
+- memory related functions
+    - each process have to be identified with its memory bank
+    - new process is loaded into bank with most free memory
+    - process can allocate memory ONLY in own bank
+    - stack and zpage can be anywhere (full 20-bit MMU relocation)
+
+- on bootup check for amount of internal/VDC memory
+
+- check in C. Bruce's ACE sources how banks 4-8 of RAM are acessed, but still isn't clear if
+  zpage/stack is relocatable beyond bank 3
+
+- make defineable, x128-friendly vdc initialization or better fix vdc-draw.c in VICE sources
+  ^^^	VDC emulation doesn't clean 256 bytes on writting '0' to VDC_COUNT, so my speedup code
+	sucks, but VICE VDC emulation sucks more!!! ;-(
+
+Maciej Witkowiak
+ytm@friko.onet.pl

@@ -1,0 +1,361 @@
+General TCP/IP-Documentation
+============================
+
+Introduction
+============
+
+  SLIP means "Serial Line Internet Protocol" and is used to transmitt 
+  Internet-Datagrams over a serial link.
+  So if you connect your C64 via SLIP to the Internet it must understand
+  the Internet-"language" itself. Rather than just send and receive data-bytes
+  over the RS232-interface, the C64 must know several Internet-Protocols:
+
+    ICMP (Internet Control Message Protocol)
+    TCP  (Transmission Control Protocol)
+    UDP  (Universal Data Protocol)
+
+  I don't want to go too deep into that, all i want to say is "SLIPdemo"
+  is able to do just this ! It understands the Internet-"Language" and makes
+  your C64 be a *real* part of the Internet.
+  All the things you can do on a UNIX-account (like TELNET,FTP,IRC,NEWS,WWW...)
+  when you are logged into your account with your C64 as ascii-Terminal must
+  now be done by your C64 alone !
+
+How to establish the SLIP-connection
+====================================
+
+First there must be a physical connection, by a nullmodem-cable or via
+modem.
+
+NULLmodem:
+  In this case setting up the connection is quite easy.
+  Just select equal baudrate and data-settings on both ends, choose IPs for
+  both computer (The IP is a 4Byte-Identifer, like a name of the computer).
+  Enable SLIP on both ends, thats all.
+
+MODEM:
+  I hope you have some experiences in dialing up other computer by modem.
+  So you already have a terminalprogram and a RS232-interface for your C64.
+  And you know how to handle them. 
+  
+  Before you can think of doing SLIP you must be able to connect to a SLIP-
+  server and you must have permission (username plus password) to enable
+  SLIP on that server. There are two kinds of slip server, static and
+  dynamic slip server. 
+
+  A static slip server is one in which you have a IP address that is
+  the same everytime you call him up. Using a dynamic slip server you'll
+  have different IP addresses everytime you connect, in this case you have
+  to find out what your IP address is every time you want to enable SLIP.
+ 
+  After dialing into your slip server (with your normal terminal
+  program) you will be asked for username and password. If it is a
+  static one SLIP may be enabled right after that. If it is dynamic server it
+  may print a short welcome message including the IP address it has allocated,
+  and will proceed to use that IP address for the duration of that call.
+
+  Remember the IP address you got and leave your terminal programm without 
+  hanging up ! (Be sure you configured your terminal programm to use the
+  same RS232-settings as the SLIP-socket does, be also sure to disable
+  XON/XOFF-flowcontrol heyes-command "AT&K3" or "AT&K0")
+  Then load and start the TCP/IP software. You also have to apply your IP 
+  address when starting the tcpip handler.
+
+
+Quick guide in using TCPIP
+==========================
+
+  What can i do with TELNET ?
+  ===========================
+
+  Almost everything !
+  
+  Some examples:
+    
+  o You can use TELNET like on your UNIX-account (default port 23) to
+    log into an other machine. 
+
+  o You can do what the UNIX-command FINGER does, just select port 79
+    and type the username from that person you want to finger up and press
+    return. (you can also press return without a username to get a list
+    of users).
+
+  o You can send eMail by contacting port 25 of a host with a sendmail-daemon
+    running.
+
+  o You can get pages from World Wide Web (WWW) by sending requests to
+    port 80 of the www-server.
+
+  o You can do what IRC does, connect to port 6667 of an IRC-server.
+
+  o You can read eMail from your POP(3)mail box 
+
+  ... and much more.
+
+  The only problem is, that you must know how to talk with each of
+  those servers. Some of these "languages" are very cryptic (e.g. IRC) 
+  So you need a special userinterface that translates your language in
+  that of the server.
+
+  Some practical examples:
+
+  The lines marked with > have been typed by myself.
+
+  Sending an eMail
+  ----------------
+
+  telnet 123.123.123.123  port 25  (replace 123.123.123.123 by the
+                                    servers IP address)
+  trying...
+  connected!
+  220 dosbuster.rus.uni-stuttgart.de ESMTP Sendmail ...
+> help
+  214-This is Sendmail version 8.7.5
+  214-Commands:
+  214-    HELO    EHLO    MAIL    RCPT    DATA
+  214-    RSET    NOOP    QUIT    HELP    VRFY
+  214-    EXPN    VERB
+  214-For more info use "HELP <topic>".
+  214-To report bugs in the implementation send email to
+  214-    sendmail@CS.Berkeley.EDU.
+  214-For local information send email to Postmaster at your site.
+  214 End of HELP info
+> helo c64
+  250 dosbuster.rus.uni-stuttgart.de Hello poldi@localhost [127.0.0.1], ...
+> mail from: Hugo
+  250 Hugo... Sender ok
+> rcpt to: daniel.dallmann
+  250 Recipient ok
+> data
+  354 Enter mail, end with "." on a line by itself
+> Hello Daniel this is just a little example !
+> bye for now
+> .
+  250 VAA00537 Message accepted for delivery
+> quit
+  221 dosbuster.rus.uni-stuttgart.de closing connection
+  Connection closed by foreign host.
+
+  You just have to replace Hugo by your full eMail address and daniel.dallmann
+  by the full eMail address of the recipient.
+
+  Finger one up
+  -------------
+
+  TELNET 123.123.123.123  port 79
+
+  trying...
+  connected!
+>(just press return here)
+  Login    Name                 Tty  Idle  Login Time   Office     Office Phone
+  poldi    Daniel Dallmann       p0        May 17 19:51 (:0.0)
+  poldi    Daniel Dallmann       p1    11  May 17 21:03 (:0.0)
+  Connection closed by foreign host.
+
+  or
+
+  TELNET 123.123.123.123  port 79
+  
+  trying...
+  connected!
+>(type "poldi" then press return here)
+  Login: poldi                            Name: Daniel Dallmann
+  Directory: /home/poldi                  Shell: /bin/bash
+  Office: My Room, 0815                   Home Phone: 4711
+  On since Fri May 17 18:09 (MET) on tty1    1 hour 26 minutes idle
+  On since Fri May 17 19:51 (MET) on ttyp0 from :0.0
+  On since Fri May 17 21:03 (MET) on ttyp1 from :0.0
+     13 minutes 21 seconds idle
+  New mail received Fri May 17 21:08 1996 (MET)
+       Unread since Fri May 17 18:17 1996 (MET)
+  No Plan.
+  Connection closed by foreign host.
+
+  Get a WWW-page
+  --------------
+
+  TELNET 123.123.123.123  port 80
+
+  trying...
+  connected!
+>(type "GET / HTML/1.0" then press return two times)  
+  HTTP/1.0 200 Document follows
+  Date: Fri, 17 May 1996 19:20:49 GMT
+  Server: NCSA/1.4.2
+  Content-type: text/html
+  Last-modified: Sat, 04 Nov 1995 15:42:41 GMT
+  Content-length: 430
+
+  <!doctype html public "-//IETF//DTD HTML 3.0//EN">
+
+  <html>
+   <head>
+    <title>Homepage</title>
+   </head>
+   <body>
+    <bodytext>
+
+     <h2 align="center">Homepage of localhost</h2>
+
+     <p>
+      This is a demo Homepage of your http-server. You can find it in
+      the directory /var/httpd/htdocs.
+     </p>
+
+     <p>
+      If you have installed the ncsa httpd-docs click <a
+       href="httpd-1.4/">here</a>.
+     </p>
+
+    </bodytext>
+   </body>
+  </html>
+  Connection closed by foreign host.
+
+  If you used lynx ("lynx http://123.123.123.123/") 
+  this WWW-page would look like this:
+
+  ---------------------------Title: Homepage----------------------------
+                          Homepage of localhost
+ 
+ 
+ 
+     This is a demo Homepage of your http-server. You can find it in the
+     directory /var/httpd/htdocs.
+ 
+     If you have installed the ncsa httpd-docs click here.
+  ----------------------------------------------------------------------
+
+  Read eMail on your popmail-box
+  ------------------------------
+
+  TELNET <name_of_popmail_server> port 110
+  
+  Trying ...
+  Connected to dosbuster.rus.uni-stuttgart.de.
+  Escape character is '^]'.
+  +OK dosbuster POP3 Server (Version 1.004) ready.
+> USER <your login>
+  +OK please send PASS command
+> PASS <your password>
+  +OK 1 messages ready for poldi in /usr/spool/mail/poldi
+> LIST
+  +OK 1 messages; msg# and size (in octets) for undeleted messages:
+  1 427
+  .
+> RETR 1
+  +OK message 1 (427 octets):
+  X-POP3-Rcpt: poldi@dosbuster
+  Return-Path: Hugo
+  Received: from c64 (poldi@localhost [127.0.0.1]) by dosbuster.rus.uni-stuttgart.de (8.7.5/8.7.3) with SMTP id LAA00213 for daniel.dallmann; Sun, 9 Feb 1997 11:54:14 +0100
+  Date: Sun, 9 Feb 1997 11:54:14 +0100
+  From: Hugo@studbox.uni-stuttgart.de
+  Message-Id: <199702091054.LAA00213@dosbuster.rus.uni-stuttgart.de>
+
+  Hello Daniel this is just a little example !
+  bye for now
+
+  .
+> QUIT
+  +OK dosbuster POP3 Server (Version 1.004) shutdown.
+  Connection closed by foreign host.
+  
+
+
+Technical Documentation
+=======================
+
+The TCP/IP stack consists of some more or less independent modules, that are
+interconnected by packet queues (single linked lists). Those linked lists
+are build of a pool of packet buffers. Information related to buffers are
+kept in arrarys of bytes (array size equals to the maximum number of available
+buffers).
+
+ buf_mid[x]   - address of buffer x (hi-byte only,since buffer is page aligned)
+ buf_l2nx[x]  - no. of buffer following x in the queue (<0, when end of queue)
+ buf_lenl[x]  - length (lo-byte) of packet in buffer x
+ buf_lenh[x]  - length (hi-byte) of packet in buffer x
+ buf_offs[x]  - length of IP header (offset of TCP/UDP/ICMP header)
+ buf_offsh[x] - length of header (offset of packet data)
+
+Right after the start, all the buffers are empty, unused and therefore
+part of the free-buffer-list. (No memory is allocated for the buffers 
+at this time !)
+
+ freelst - holds number of the buffer, that starts the free list
+
+Example:
+
+          $02                $04                $80
+ freelst -----> buf_l2nx[2] -----> buf_l2nx[4] ------o
+                buf_mid[2]         buf_mid[4]
+                buf_lenl[2]        buf_lenl[4]
+                   ...                 ...
+
+After startup, the TCP/IP driver allocates memory for 4 buffers (configurable).
+Each of those 4 buffers' size is 1024 bytes. The allocated but empty buffers
+are passed to the SLIP/PPP driver. The TCP/IP driver keeps track of the
+number of fillable buffers, that are available for the SLIP/PPP driver and
+tries to maintain a pool of 4 available 1024byte buffers.
+
+The SLIP/PPP driver (a different task) fills the buffers with datagrams, might
+free unused portions of memory of each buffer and passes the datagrams to
+the TCP/IP driver.
+
+The SLIP/PPP driver is polled for incoming packets (pack_poll) by the 
+TCP/IP driver, those packets are then queued into the IP-queue (bottom). 
+Everytime the IP submodule is called (ip_modul), it removes one packet 
+from the top of the IP queue, examines the header, verifies the 
+checksum and adds the packet either to the free-buffer-list, the TCP or 
+ICMP queue.
+
+IP queue:
+ iplst    - no. of buffer (packet), that is on top the the queue
+ iplst+1  - no. of buffer (packet), that is on bottom of the queue
+
+
+Example:
+
+        $01                   $05                     $80
+ iplst -----> buffer1        -----> buffer5          -----o
+              (buf_l2nx[1]=5)       (buf_l2nx[5]=$80)
+                                           |
+                                           |$05
+                                           |
+                                        iplst+1
+
+Polling never is a good solution. So the interface between the SLIP/PPP driver
+and the TCP/IP driver must be improved in the future.
+All the other queues are handled the same way.
+
+Queue of the ICMP submodule (icmp_modul):
+ icmplst   - no. of buffer, that is on top of the ICMP queue
+ icmplst+1 - no. of buffer, that is on bottom of ICMP queue
+
+Queue of the TCP submodule (tcp_modul):
+ tcplst    - no. of buffer, that is on top of the TCP queue
+ tcplst+1  - no. of buffer, that is on bottom of TCP queue
+
+Queue of the UDP submodule (not implemented):
+ udplst    - no. of buffer, that is on top of the UDP queue
+ udplst+1  - no. of buffer, that is on bottom of UDP queue
+
+
+
+ICMP submodule
+==============
+
+The ICMP submodule is rather simple since no state information is needed
+to process the incoming ICMP packets.
+The checksum of incoming ICMP packets is checked, next the type field
+is used as an index into a small jump table. Unknown ICMP messages are
+quietly discarded. The understood ICMP messages are:
+
+ Type 0 : echo reply (discard)
+ Type 3 : remote site can't be contacted (close the related connection)
+ Type 8 : echo message, answer with reply message
+
+
+TCP submodule
+=============
+

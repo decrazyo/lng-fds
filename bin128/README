@@ -1,0 +1,17 @@
+transfer lng.c128 to your Commodore128, insert a empty (formatted) disk
+in drive 8 and run it (in C64 mode!), it will create a (hopefully :) working
+LUnix disk.
+
+Run LUnix by loading "loader",8 + run
+
+If you want to use a different
+set of boot.c128/lunix.c128 files, you may want to load them by hand:
+
+bload "boot.c128"
+...
+bload "lunix.c128"
+...
+sysdec("1300") 
+
+You may also alter the boot block by running autoboot. LUnix
+will then autoboot from floppy.

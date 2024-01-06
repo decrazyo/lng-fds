@@ -1,0 +1,5 @@
+config.h
+zp.h
+ksym.h
+jumptab.h
+jumptab.ca65.h

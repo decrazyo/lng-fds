@@ -1,0 +1,11 @@
+config.h 
+  is a copy of MACHINE/config.h
+
+jumptab.h 
+  is derived from kernel/jumptab.s by shell script mkjumptab_h
+
+zp.h 
+  is derived from the kernel sources by shell script mkzp_h
+
+ksym.h 
+  is derived from linker output (globals.txt) by shell script mksym

@@ -1,0 +1,11 @@
+luna, lupo, lld
+ are assembler, preprocessor and linker needed to build lunix
+ (i decided to include them in here, because of the changes i made
+ to the tools in order to work with the new version of lunix)
+
+relate
+ is a simple tool (not tested much) to lookup function dependencies
+ (go into the kernel subdirectory and do "relate *.s")
+
+chklib, chkobj
+ tools to check the object (or library) created with luna/lld

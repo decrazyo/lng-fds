@@ -1,0 +1,35 @@
+Escapecodes (ANSI compatible) implemented in keyboard/console module:
+
+  $0a - <CR/LF>  to beginning of new line
+  $0d - <CR> to beginning of current line
+  $1b - <ESC> beginning of escape sequence
+  $09 - <TAB> step to next tabulator (tab width is 4)
+  $08 - <DEL> erase char before cursor
+
+  <ESC>D         - cursor down one line
+  <ESC>[#y;#xH   - cursor positioning (#y, #x default to 0)
+  <ESC>[2J       - clear screen
+  <ESC>[K        - erase rest of line
+  <ESC>[#y1;#y2r - change scroll region
+  <ESC>[#a1;...m - change attributes (7=rvs)
+  <ESC>[A        - cursor up one line
+  <ESC>[B        - cursor down one line
+  <ESC>[C        - cursor forward one char
+  <ESC>[D        - cursor backward one char
+
+Compile option MULTIPLE_CONSOLES:
+  fopen (on /console) or console_open returns valid fd, if there are
+  virtual consoles left, else it returns an error (too many files)
+
+Compile option VDC_CONSOLE:
+  instead of "opt/vic_console.s" and "opt/vic_console_init.s" the files
+  "opt/vdc_console.s" and "opt/vdc_console_init.s" are choosen.
+
+Screen size:
+  The screen size of the console is defined in console.h (size_x, size_y)
+  and used to initialize the environment variables tsp_termx and tsp_termy
+  (in init.s).
+  An application should read the environment variables to obtain information
+  on the screen size. (the size might differ - it is 24x80 for incoming
+  telnet or RS232-terminals)
+

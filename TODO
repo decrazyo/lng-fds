@@ -1,0 +1,46 @@
+note to self: RELEASE PROCEDURE
+- change version number in bootstrap.s, system.h
+- for IDE64: packages and .lunixrc (with ide64rtc) and ide64loader onto disk image
+- for C64/128: make cbmdisc
+
+my to-do list:
+-- environment for a working "more" command (partly done)
+-- driver for UP9600 (enhanced userport rs232 interface)
+-- driver for 16550 based RS232 interfaces
+-- RAM disc for REU
+-- general support for external RAM
+-- environment for "ps" with command names
+-- better vt100/ansi emulation
+-- better handling of lines longer than 40 chars
+-- shell command completion (from history buffer ?)
+-- shell wildcard expansion
+-- command cache
+-- move parts of the kernel into a library
+-- distribute lunix in a >compressed< archive
+
+ytm todo:
+- need to check if atari/pcat keyboard weren't broken during last change
+- rewrite fs stuff to support block I/O (fread and fwrite)
+  e.g. for IEC: enter_atomic, load up to 254 bytes and leave_atomic;
+  for IDE64: enter ROM compatible mode, load WHOLE block, leave ROM mode
+- support for external RAM in similar way to cc65 .emd drivers
+
+from groepaz:
+- added fasthead util and alternative loader for it. this should
+  probably merged into one program that sends the floppy command
+  and then loads lunix.
+
+- sh:command-line argument support for scripts
+- sh:improve piping... '!' with more than two programs,
+  '>' and '<' ...
+- "less" program?
+- "test", "if", "switch", "read" programs? (what else is
+   required for simple scripting jobs? :o))
+- "strmkill" program?
+- some kind of "sed" and "killall"/"shutdown"/"reboot" scripts
+- some kind of "grep"
+- simple texteditor
+- silversurfer supports baudrates up to 230kbaud, this
+  driver will only go up to 57600 by now.
+- silversurfer hack shouldnt be a compiletime option...
+  better make some commandline switches or sth

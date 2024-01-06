@@ -1,0 +1,55 @@
+; ****
+; **** Apple II Boot Directory
+; ****
+
+created Nov 18 2000 by Michael Kelly (mouse)
+
+I will quickly describe how the Apple II loads data from the diskette.
+Apple's DOS 3.3 and ProDOS all boot this way, and I have chosen to copy
+the format used.
+
+Startup:
+One turns the Apple or starts the Apple emulator.  The first code run
+is the ROM startup code, located at $FA62.  This initialized the screen
+and prints "Apple II".
+
+This code then proceeds to look for slot ROM code to execute.  It checks
+from slot 7 to slot 1 to see if there is a card in the machine, and if so,
+it runs the ROM code.  Slot ROM exists as 256-byte blocks starting at $C100
+to $C700.  Hence putting the Disk II controller in slot 6 by convention - it's
+one of the highest slots so it gets checked first.
+
+Boot 0:
+This first boot stage is a 256-byte program located (usually, if disk is
+in slot 6) at $C600.  This boot code initializes a disk byte translation
+table, finds out what slot it is in, and sets up some ROM zeropage locations.
+It then proceeds to load Track 0, Sector 0 into memory at $0800.  After
+it loads it starts execution at $0801.
+
+This is because $0800 contains a byte containing how many sectors Boot 0
+should read.  We shall store a $01 in that location, because we only want
+one sector read.
+
+Boot 1:
+This is our BOOTLDR1 code.  It does not contain any disk-reading code; rather
+it sets up variables as to where we want BOOTLDR2 to go and calls Boot 0's
+read sector routine to read in the values.  As such we cannot span tracks
+as of yet; we don't have any code to do so.  BOOTLDR2 will contain some
+of our track read/write routines so we can read the entire kernel in.
+We then transfer control to Boot 2.
+
+It should be noted that this boot loader might seem "extra": why have boot 1
+to load several sectors when we could simply change the value of how many
+sectors boot 0 should read in?  I asked myself this question.  For
+debugging purposes we might want to have something we can intervene with,
+and also, we want to print a pretty loader message so we know something
+is going on!  Also we get to control where in RAM the code will load.
+
+Boot 2:
+This is our BOOTLDR2 code.  It contains track/sector code and knows about
+the LNG Aple II disk format so we can read the kernel in.  We then transfer
+control to the kernel.
+
+LNG Kernel:
+Init variables, etc.  System is ready.
+

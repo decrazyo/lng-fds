@@ -1,0 +1,95 @@
+Welcome to MakeAtr, the first in hopefully a series of useful ATR utilities.
+This program may be freely distributed but not sold alone or with any other
+program for profit.  Original Docs must also be with the program.  'nuff
+said, here goes...
+
+What is MAKEATR
+---------------
+
+This program will take almost any atari executable and turn it into an ATR
+disk image you can run directly from most Atari 8-bit emulators.  It should
+work with any stand alone program that does not need DOS.  The ATR file it
+generates is only large enough to contain 3 boot sectors (384 bytes) and the
+file itself.  This makes it easier to load any specific program without
+having to use any Atari Dos.  It should also make it easy to develop a
+front end menu program for an Atari Emulator.
+
+
+How to use MAKEATR to create an ATR
+-----------------------------------
+
+Make ATR is used by simply typing from a DOS prompt:
+
+MAKEATR atrname.atr executable
+
+Where atrname.atr is the ATR file to create and executable is an Atari 8-bit
+executable.  Common extenders for executables are .EXE, .COM, .BIN, .OBJ or
+even none at all with the extender as part of the name.  If the file you
+want is contained within ATR or XFD you will need to use another program
+to extract the file you want.  You can use my program ATREXTR.  There are
+also other programs such as ADIR for doing this.  If the ATR file you
+pecify on the command line exists, it will be overwritten.  If a program
+fails to work when booting the ATR  (screen turns red), please ensure that
+it works when loaded normally from DOS or another method.
+
+Programs that consist of more than one file, or require access to files
+via DOS, will not work obviously since the disk created can only contain
+one file and there is no DOS emulation.
+
+How to load the ATR
+-------------------
+
+With XLIT, simply use:
+
+ATARI -nobasic atrname.atr  (using any other options desired)
+
+It will automatically load and run.  A 'k' will display in the upper left
+hand corner of the screen while the program loads unless the program puts
+up its own Splash screen.  If for any reason the screen turns red, that
+indicates an error occured loading from the disk.
+
+Press Shift-F8 to exit XL-IT and load something else.
+
+
+For other emulators, SIO2PC, or APE, follow the directions and set the ATR
+to be on Drive 1, and boot up the emulator or the real Atari.  Disable BASIC
+via options for the emulator or pressing the OPTION key.
+
+
+How to create an executable back from the ATR file
+---------------------------------------------
+
+Use another utility called UnMakAtr by me.
+
+
+How MAKEATR came about
+----------------------
+
+I was working on an ATR programmers library, when this came to mind.
+Other items in the library that make it to future utilities or one
+ultimate utility include:
+ATR Directory sorter, ATR creation, ATR file extraction, ATR file insertion,
+Shrink an ATR to fit its contents, ATR directory, File viewers & converters.
+
+Anyone with information on Sparta Dos or other disk formats drop me a line.
+I am also interested in algorithms for determining the DOS format of a disk.
+Specifically MyDos 1050 Density vs Atari 1050 Density,  How to tell if a
+disk is in Atari or MyDos format.  I think Mydos doesn't store File Number
+within each sector along with the sector link information when there is above
+a certain number of sectors.  Also complete Docs on DCM format would be
+appreciated.
+
+
+Ken Siders
+mail:ken_siders@compuserve.com
+http://ourworld.compuserve.com/homepages/ken_siders/atari.htm
+
+
+Last Official Update 09/3/97 version 0.9
+
+Unofficial Update 11/11/02 version 0.9-1 by Jeffry Johnston
+Reason for update:
+  Seperated makeatr.c source from the other ATR utilities
+  Created makeatr.h header for makeatr.c
+  Made makeatr.c and makeatr.h sources ANSI compliant
+  Fixed a small bug in the ATR header

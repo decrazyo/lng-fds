@@ -1,0 +1,8 @@
+Example Programs for LNG
+
+you need the CC65 package (www.cc65.org) to compile
+programs in the cc65 directory
+
+you need SCC6502 to compile programs in the scc6502 
+directory
+ 

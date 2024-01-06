@@ -1,0 +1,40 @@
+#! sh -s
+#;;
+#;; lunix loads this at startup,
+#;;
+#;; realtime clock driver
+echo "loading realtime clock driver..."
+ciartc &
+#smwrtc &
+#ide64rtc &
+#;; dcf-77 rtc update daemon
+#dcf77 &
+echo "done."
+#;;
+#;; serial interface driver
+#echo "initializing serial interface..."
+#rs232std
+#swiftlink
+#fifo64 -f
+#echo "done."
+#;; packet driver
+#echo "installing packet driver..."
+#ppp 57600 login pass &
+#slip &
+#loop &
+#echo "done."
+#;; tcp/ip stack
+#echo "starting tcp/ip subsystem..."
+#tcpip &
+#echo "done."
+#;; servers
+#echo "starting webserver..."
+#httpd &
+#echo "done."
+#echo "starting connect daemon..."
+#connd 200 sh &
+#echo "done."
+#;;
+echo "have a lot of fun!"
+#;; launch shell (done from init atm)
+#sh

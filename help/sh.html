@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="generator" content="HTML Tidy, see www.w3.org" />
+<title>Sh</title>
+<body>
+Usage: sh
+
+<p>Sh is the standard command shell for LUnix. The shell reads
+from standard input and interprets the incoming stream line
+wise.</p>
+
+<p>
+Input format:<br>
+command [parm1 [parm2 ... ]<br>
+Command is either a builtin command or matches the name of
+a executable that can be found in the current directory/drive.
+</p>
+
+<p>
+Builtin features and commands:<br>
+exit - exit the current shell<br>
+Prints a warning message if there are running child processes left.
+Calling exit a second time (or pressing CTRL+d) overrides the
+waring message and forces the shell to exit immediately.
+</p>
+
+<p>
+History feature:<br>
+The shell has a 256 byte buffer to store old commandlines. By pressing
+the cursor up and down keys you can browse through the old commandlines.
+Such a recovered old commandline can be activated, edited just if it
+was typed in manually. The history function only stores a commandline,
+if it is different from the last one remembered.
+</p>
+
+<p>
+Command completion:<br>
+A way to search the buffered commandlines. Just type the first few 
+characters, than press TAB (commodore key). The shell will try to
+guess the command or argument by comparing the given charcters to
+the commandline history. If a unique match (even a partly match) is
+found, the command will be competed to that extend. If no match
+is found, nothing happens.
+</p>
+
+</body></html>
+

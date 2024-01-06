@@ -1,0 +1,25 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="generator" content="HTML Tidy, see www.w3.org" />
+<title>ps</title>
+<body>
+usage: ps
+
+<p>Ps gives a snapshot of the current processes.</p>
+
+<p>
+"PID" is the process ID.<br>
+"ST" is the process state. A process that is waiting for
+input or another event, and doesn't consume any CPU time is the
+the "wait" state. "wcons" means the process is waiting for input from the user (console). A busy process is on "cpu" - there can be more than one
+busy processes.<br>
+"Time" is the CPU time consumes by the process so far. The unit is CPU ticks (eg. 1/985000s) printed in hexadecimals.<br>
+"PPID" is the ID of the parent process.<br>
+"ID" is the internal (short-) ID of the process, it is in the range 0..15.<br>
+"FP" flags and priority.<br>
+"MEM" the number of allocated internal memory pages.<br>
+</p>
+
+</body></html>

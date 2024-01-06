@@ -1,0 +1,310 @@
+from 0.20 to 0.21 (Sep 10 2004)
+-----------------
+fixed: "uname -p" command shows processor name (GK)
+changed: more keyboard code is common throughout archs (MW)
+changed: Makefile fixes so package/disc works for all archs (MW)
+added: lkf_loado65 kernel-function; it loads o65 modules without running them (GK)
+changed: improved the documentation-comments for the spawn functions (GK)
+changed: lunixrc --> .lunixrc on disk image (MW)
+fixed: init.s warnings, now SKIP_WORD/SKIPWORDV is used everywhere in kernel (MW)
+added: configuration option for DIN keyboard layout (MW)
+removed: all PETSCII references (obsoleted for quite some time anyway) (MW)
+changed: updated TODO list, documentation (MW)
+added: pwd tool (G)
+added: sh -r -s options, can take input from file given as an argument, not only stdin (G)
+fixed: sh quote-bug
+added: some shell scripts (man, sysinfo, ...) (G)
+added: fasthead/fastload utilities for C64 (G)
+added: silver surfer support in fifo64/sfifo64 drivers (G)
+changed: relate tool is always used now to generate kernel docs (G)
+added: option for init script lunixrc instead microshell (G)
+added: scripting support with #!interpreter (only if O65 is enabled) (G)
+changed: top level Makefile: disc target, dependencies (G)
+added: samples directory with example programs for luna, cc65 and scc6502 (G)
+added: atari makeatr program that prepares bootable floppies (JJ)
+fixed: atari makeimage reports errors and accepts full paths as input (MW)
+fixed: o65.s uses system semaphores now (MW)
+fixed: renumbered major device numbers (MW)
+added: expand command (DD)
+fixed: o65_loader won't relocate zeropage as this is not needed (MW)
+added: skeleton.ca65.s and rules for apps/Makefile to build *.o65 apps, more in README/apps (MW)
+added: env can print/get/set variables of its parent process (MW)
+added: mkjumptab_h generates also LNG jumptable include for ca65 (o65 target) (MW)
+added: env prints environment, resolve_filename will use PWD if needed (MW)
+added: support for environment variables (setenv/getenv), limited to 256bytes per task (MW)
+added: root filesystem support "/", allows for 'ls -la /' command (MW)
+added: support for fcmd_chdir on IEC (will work on CMD devices, 64hdd and 64net/2) (MW)
+added: Cd command (MW)
+fixed: many things in IDE64 driver, it is fully supported now (MW)
+added: basic IDE64 support (as /ide64 MAJOR_IDE64) (MW)
+
+from 0.19 to 0.20 (Dec 27 2001)
+-------------------------------
+added: httpd default root document (index.html) (Jools Smyth)
+added: autoboot - write C128 boot block (Ilker Ficicilar)+(SH)
+added: touch command (SH)
+fixed: o65_loader is protected from being reentrant (MW)
+fixed: bug in smwrtc that would cause to write on random memory (MW)
+added: IDE64 RTC handler (MW)
+added: support for relocatable file format .o65 (MW)
+changed: New -i option for rm and handle multiple files (PD)
+changed: New -vte options and handle multiple files (PD)
+added: False command (PD)
+added: True command (PD)
+added: Echo command with -nE options with esc sequences (PD)
+added: popclient application (DD)
+fixed: bug #420906 "Microshell: 'l/' is evil" (DD)
+fixed: 64net2 EOF handling (MW)
+added: stuff to help in automatic Atari disk image creation (MW)
+added: RELO_JMP(addr) and RELO_END macros (DD) idea by (AT)
+added: SKIP_BYTE, SKIP_WORD macros (replaces .byte $24, .byte $2c) (DD/AT)
+added: srandom/random functions (MW)
+changed: debug stuff is common for all, please use debug.h only (MW)
+fixed: lock returns with c=1 without error (AT)
+changed: bmap renamed to bit_n_set (table of values 2**n) (AT)
+fix: lib/print_hex8i.s possible stack corruption on error (Anton Treuenfels)
+added: IEC bus via 64net/2 support (as /net64 MAJOR_IEC, #15) (MW)
+fixed: ls lists directory a bit faster and works on 1571 from another drive (MW)
+
+from 0.18 to 0.19 (Apr 11 2001)
+-------------------------------
+added: -a option for ls (ls now hides files beginning with ".") (DD)
+changed: fs_iec now does character conversion (unix2cbm) (DD)
+changed: more code is common in keyboard.s (MW)
+added: <br> tag for help and XHTML to help files (SH)
+added: some helpfiles, fifo64 (untested) (DD)
+fixed: misspelling of the word "libraries" mainly in lld.c and luna.c (SH)
+changed: system code is ready for dynamic console allocation (MW)
+fixed: console_close bug, that caused microshell to hang, after running
+       the first command in single console mode (DD)
+removed: ancient kernel/c64/todo/cons80.s code (MW)
+added: vic 80 column console (MW)
+added: application clear (SH)
+changed: ident.h and skeleton (Stefan A. Haubenthal)
+added: minimal support for Atari 65XE/800X?/130XE port (only kernal+microshell) (MW)
+changed: updated keyboard modules to allow to switch to any console,
+	 and support next/previous console shortcut (MW)
+changed: fs_cons stuff is flexible now and supports up to 8 consoles,
+	 vdc console can do all of them (on 16/64k VDC), vic console only two (MW)
+changed: Makefile: package files now created in the pkg-subdirectory (DD)
+changed: c64arch renamed to mksfxpgk and added way to specify architecture (DD)
+changed: small changes to the TCP/IP main loop (improves performance??),
+         added UDP packet discarder (DD)
+changed: PC-AT keyboard lock keys are supported in altflags (e.g. CAPS) (MW)
+fixed: PC-AT keyboard tables for shifted letters (BIG ones are available) (MW)
+added: minimal hardware flow control support for swiftlink (MW)
+changed: undefined SPEED_* for C128, it (and iec stuff) works
+         at constant 2MHz flawlessly (MW)
+added: smartwatch RTC handler, library function hextobcd (MW)
+added: date, output in unix or ntp time (AB)
+added: new library functions: checkdate dateconvert adc_32_8 mult_32_8 (AB)
+changed: ciartc now uses sleep(17s) instead of TOD interrupt (AB)
+changed: dcf77, support for insertion of leap second  (AB)
+fixed: not all IP fragments discarded (AB)
+added: httpd - an experimental webserver (DD)
+added: support of the (german) DCF-77 receiver (Alexander Bluhm)
+added: RTC emulation using CIA1 (Alexander Bluhm)
+
+
+from 0.17 to 0.18 (Sep 25 2000)
+-------------------------------
+added: experimental 6510/8500 detection code (see bootstrap.s)
+fixed: IRQ hooking/unlocking,
+       add_module might return with set carry without error,
+       Some Makefile fixes (Alexander Bluhm)
+added: beep application (trivial) (DD)
+added: sid support and beep ('\007') character support to all consoles (MW)
+changed: c128 keyboard is fully supported (new flags in altflags) (MW)
+fixed: vdc_console ram addressing, small change - significant speedup (MW)
+fixed: vic_console_single (zeropage variables and other things)
+changed: opt-subdirectory for chipset/interface specific kernel code
+removed: misbehaving HAVE_256K option (needed on all C128s) (MW)
+fixed: MMU_STACK option to fix problems with SCPU 128 (MW)
+changed: code splitting zpage[in/out] stack[in/out].. (MW)
+fixed: terminal size handling of help, more, ftp, getty, connd
+added: env - print environment settings
+fixed: shell stderr piping bug
+fixed: c64 single console code
+added: context switch benchmark
+added: pipe throughput benchmark
+added: code for PC-AT keyboard on datasette port (MW)
+added: termwx/termwy environment attributes (size of terminal)
+added: lib subdirectory for source of standard library
+added: first implementation of help (html viewer)
+added: help subdirectory for on-line help pages
+changed: c64arch now more quiet (and prints help when called without args)
+changed: luna now supports "\n\r\t\0" in .text ".." and does no longer
+         convert character arguments (eg. #"x") to petscii
+added: lld -N for generating LNG executables
+
+
+from 0.16 to 0.17 (Sep 7 2000)
+------------------------------
+adapt source tree to CVS environment
+means:
+  try to get rid of all the symbolic links!
+  (use a dummy file with only a include statement in)
+  vdc_console moved one directory up (is not that machine dependent)
+changed: INCLUDE_DEPTH_MAX of lupo changed from 5 to 8 and fixed seg.fault
+         on hitting the limit
+
+from 0.15 to 0.16 (Jan 27 2000)
+-------------------------------
+added: 256kRAM C128 compatibility (MW)
+added: hardware stack swapping (see README.ytm and c128/README for more) (MW)
+changed: virtual addresses for kernel functions (run-time adaped)
+added:  turbo232 code added to swiftlink driver
+fixed:  swiftlink driver doesn't load @ 1st time after software reset
+uups:   wrote 51200 instead of 57600 baud at some places
+changed: PAL/NTSC detection algorithm
+cleaned: VDC console code - minor changes (Maciej Witkowiak)
+added:  c128 keyboard support (Maciej Witkowiak)
+fixed:  ppp reading username and pw from commandline
+
+from 0.14 to 0.15 (Dec 23 1999)
+-------------------------------
+fixed:  small glitch in lupo (specialfunctions with -r switch)
+fixed:  bug in calibration (bogoMIPS calculation) fixed
+added:  TCP/IP automatic address configuration
+added:  PAL/NTSC, 50/60Hz awareness
+added:  Errol Smith's PPP code
+changed: moved modules directory into the kernel sub-tree
+added:  Maciej Witkowiak's code for a native C128 version of LNG
+changed: console and keyboard driver splitted into static and init part
+fixed:  c64arch created binary with start address $ce01 instead of $0801
+cleaned: access to address 1 now encapsulated in macros (GET/SETMEMCONF)
+added:  VDC console (by Maciej Witkowiak)
+added:  -f switch to bypass hardware detection (rs232std,swiftlink)
+added:  minimal support for SuperCPU (disc access at 1MHz)
+added:  more command (view outptu page by page)
+added:  uptime command (get system's uptime by reading CIA2 clock)
+added:  date command (get/set current time)
+added:  meminfo command (internal memory statistics)
+added:  strminfo command (streams statistics)
+fixed:  use of undefined memown-codes in tcpip and console
+
+from 0.13 to 0.14 (Oct 16 1999)
+-------------------------------
+fixed:  reu-console crash in cons_clear (called at init)
+added:  ftp download uses heavy buffering (up to all available internal mem.)
+added:  ipv4_tcpinfo call to ipv4-API (in tcpip.s and ftp.s)
+fixed:  bug in console driver (garbled output)
+fixed:  wrong formatted output of ps (wait state "cons" added)
+changed: moved all header files into ./include/...
+fixed:  lk_sleepipid initialized wrong (system hang after 17 minutes)
+fixed:  slip registers broken module, when started with unsupported baudrate
+added:  usage of formerly unused parts of the zeropage
+fixed:  "[0001] unhandled: 00" error message from micro shell
+
+from 0.12 to 0.13 (Sep 22 1999)
+-------------------------------
+added:  console driver now supports 2 virtual consoles (compile option
+        MULTIPLE_CONSOLES)
+added:  new driver for standard RS232 userport interface (for SLIP)
+changed: moved compile time switches from Makefile into config.h
+fixed:  bug in bootstrapping code (cause of crash when the code exceeds 256byt)
+added:  minimal REU support (compile option HAVE_REU)
+added:  compile option ALWAYS_SZU for use with REU speeded taskswitching
+
+from 0.11 to 0.12 (Aug 11 1999)
+-------------------------------
+-----:  small changes to the kernel code (comments)
+fixed:  weakness in TCP/IP (freeing unused bufferspace)
+added:  "loop" loop back packet driver
+app:    simple "cp" by Gene MyCully
+
+from 0.10 to 0.11 (Jul 9 1999)
+------------------------------
+fixed:  bug in fs_iec (too many files, after 8 unsuccessfull fopen calls)
+fixed:  some TCP/IP fixes
+fixed:  memory leak in sh
+changed: print_error now uses stderr if available (instead of printk)
+tuned:  some more CBM errors understood
+added:  connd application (TCP/IP connect demon)
+added:  user stream (create own stream with fgetc/fputc/fclose functions)
+added:  wc [file] (not just stdin)
+added:  fcmd-call and "rm" application
+fixed:  signal handling (some bugs in sendsignal/signal)
+added:  SLIP, TCP/IP support (based on SLIPdemo/LUnix0.1, alpha-quality)
+added:  telnet application
+
+from 0.09 to 0.10 (Jun 13 1999)
+-------------------------------
+added:  uuencode/uudecode (ported from LUnix0.1)
+added:  console stream
+fixed:  small bug in shell ("PS ! WC", spaces after "!" didn't work)
+added:  translation of CBM to LNG errors (LNG just reported ioerror)
+added:  support for fmode_wo, fmode_a in fs_iec (write only, append)
+added:  support for >1 opened files in fs_iec
+added:  application: cat, tee by Piotr Roszatycki
+fixed:  error in lock-call (was always non-blocking)
+added:  compile switch for textual kernel error messages
+fixed:  unprotected atomic section in fopen/fgetc/fputc (cause of random crash)
+fixed:  add_task errors (outofmemory instead of illarg/toomanytasks)
+fixed:  sh parameter handling (was cause of outofmemory or broken args)
+fixed:  exe_reloc problems (was cause of crash)
+fixed:  fix_module leaves illegal lk_memnxt-pointer
+added:  simple getty application
+fixed:  swiftlink module buffer-allocation (was cause of crash)
+fixed:  swiftlink module and RTS/CTS handling
+
+from 0.08 to 0.09 (May 16 1999)
+-------------------------------
+tuned:  init (microshell) response time
+fixed:  fork_to return value
+fixed:  fs_pipe_fputc hang instead of broken_pipe bug
+added:  ansi compatible escape codes for cursor movement (up/down/left/right)
+        in keyboard and console module
+changed: micros-hell renamed to init
+added:  kernel support for commandline arguments (max 252 bytes)
+fixed:  completed NMI-locking
+fixed:  bugs in NMI-Handling
+fixed:  crash in unlock(nmi) fixed
+tuned:  fopen (IEC serial bus) 1541 search wait-time changed from 6 to 2.5s
+fixed:  fgetc (pipe) returned TRY_AGAIN instead of EOF
+fixed:  ugly side effect when task switching with ZPsize=0
+added:  shell passes keystrokes through to the application
+added:  inheritance of default device (addtask)
+
+
+from 0.07 to 0.08 (Mar 26 1999)
+-------------------------------
+too much to count!
+added:  basic serial i/o routines
+        basic filesystem stuff (not yet complete)
+        code relocator
+        simple shell ("micros-hell")
+        ...
+fixes:  countless .-)
+
+
+from 0.06 to 0.07 (Dec 6 1997)
+------------------------------
+added:         signals
+changed:       machine dependencies
+
+from 0.05 to 0.06 (Nov 8 1997)
+------------------------------
+added:         some ANSI escape codes for console.s (enough for running IRC
+               remotely)
+added:         microterminal for swiftlink (NMI, $de00, 9600 Baud, 8N1)
+
+from 0.04 to 0.05 (Nov 2 1997)
+------------------------------
+added:         scheduling with priorities (1..7)
+
+from 0.03 to 0.04 (Oct 18 1997)
+-------------------------------
+removed bugs:  p_insert/p_remove/taskswitching.. with many tasks
+added:         exitcodes + time
+
+from 0.02 to 0.03 (Oct 12 1997)
+-------------------------------
+removed bugs:  sleep/taskswitch/... with many tasks
+added:         pagewise memory management (internal RAM)
+added:         addtask routine
+
+from 0.01 to 0.02 (Oct 6 1997)
+------------------------------
+removed bugs:  sleep/suspend very buggy (unusable) with more than 1 task
+

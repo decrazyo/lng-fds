@@ -1,0 +1,18 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="generator" content="HTML Tidy, see www.w3.org" />
+<title>Help</title>
+</head>
+<body>
+Usage: help [command]
+
+<p>Help prints online documentation on a given command or topic.
+This is done by opening a file with the commands name plus the
+extension ".html". Help returns with an error, if this file can not
+be found in the current directory. This version of help only
+support a very small subset of XHTML tags, it even lacks support of
+hyperlinks.</p>
+
+<p>Help is available on:</p>

@@ -1,0 +1,38 @@
+
+Maciej Witkowiak
+<ytm@elysium.pl>
+27.12.2000
+
+For info how to build and move boot.atari and lunix.atari to Atari read info in
+devel_utils/atari/README.
+Now you can only build kernel, no modules support, no binaries support (you don't
+have possiblility to load them anyway).
+
+This is the first attempt at porting LUnix to Atari. After two days of research
+and coding I have running system, console, keyboard and microshell.
+There are still things to be corrected/improved, like:
+
+- kernel/fs.s   - remove fs_iec from there if Atari present
+- default colors are ugly (see kernel/opt/antic_console_init.s for change)
+- possibly detect computer type 65/800/130 and processor 6502/6502c
+    code is here:
+
+    ;; returns 0 for 6502c and 1 for 6502/6510/8502
+    ;; tmpzp on zero page!
+    lda #1
+    sta tmzp
+    .byte 100, tmpzp		; stz tmpzp (STore Zero) or two byte NOP
+    rts
+
+- kernel/atari/calib.s - no real calibration is done, I have made up the values :)
+- kernel/atari/irqinit.s - there's no TOD, nor timer2 initialization
+- kernel/atari/keyboard.s - some gfx characters could be used for unavailable ASCII like ` is
+    upper left square on atari (CTRL+L)
+- opt/antic_console{_init}.s - there's no MULTIPLE_CONSOLES support
+- kernel/atari/tasksw.s - there's no timer2 available, nor alarm so some values are left
+    behind
+
+and all in all
+- there's no disk support, no rs232 support
+
+Read the code and comments there

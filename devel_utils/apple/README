@@ -1,0 +1,20 @@
+; ****
+; **** Apple II Utilities Directory
+; ****
+
+created Nov 15 2000 by Michael Kelly (mouse)
+
+This directory contains files for getting the Lunix operating system
+over to the Apple II side of things.
+
+diskimage:	This program creates and modifies Apple II disks 
+		You can format a new disk image, or add a binary image
+		to any track/sector.
+
+		TODO: Give disk information, catalog, support Apple Lunix
+		filesystem, etc.
+
+extract:	Take a binary file and produce output suitable for
+		Apple II Monitor input (useful for testing bits of code).
+
+

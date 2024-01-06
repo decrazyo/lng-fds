@@ -1,0 +1,3 @@
+#! sh -s
+help %1 ! more
+

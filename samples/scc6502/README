@@ -1,0 +1,21 @@
+   I. Curtis   4-Jul-97 22:23 icurtis@radlogic.com.au
+
+This directory contains a Makefile and the runtime to allow simple c
+programs to be compiled for LUnix
+
+File		Description
+---------------------------------------------------------------------------
+crt0.S		assembly code for c run-time support
+
+first.c		test automatic variable assignment
+second.c	test function call and while loop
+third.c		test unsigned division
+fourth.c	test arithmetic
+fifth.c		test stdio routines
+
+stdio.c		some io routines
+case.c		test case statement
+extern.c	test external variables
+
+hexdump.c	simple utility. run with "cat file ! hexdump.exe" to get
+		a hexadecimal dump of file

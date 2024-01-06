@@ -1,0 +1,7 @@
+bogoMIPS stands for bogous MIPS (million instructions per second)
+
+i measured:
+  0.36 on my PAL C64
+  0.37 under VICE's C64 emulation
+  0.38 on my NTSC C64
+  0.75 on Maciek's PAL C128

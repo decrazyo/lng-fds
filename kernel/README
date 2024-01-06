@@ -1,0 +1,713 @@
+Small Kernel-Guide
+==================
+
+(updated May 9 1999 - LNG version 0.09pre2)
+
+
+
+
+Memory Map
+==========
+
+The current memory map (which will certainly change) looks like this:
+
+	$0000-$00ff	Zeropage
+	
+			$02-$14 Kernel ZP (see "system.h" for details)
+			$60-$67 IRQ-ZP
+			$68-$6f NMI-ZP
+			$70-$77 TMP-ZP
+			$78-$7f SYS-ZP
+			$80-$df user ZP
+		
+	$0100-$01ff	Processor stack
+
+	$0200-$1fff	30 dynamic assigned memory pages
+	($0400-$07ff	used for console screen)
+        ($0800-$0bff    used for 2nd console screen)
+	
+	$2000-$47ff	10k reserved for kernel (position and size will change!)
+	
+	$4800-$bfff	120 dynamic assigned memory pages
+	
+	$c000-$c3ff	Kernel data (see "system.h for details, will change)
+	
+	$c400-$feff	59 dynamic assigned memory pages
+	
+	($d000-$dfff	IO-area, when in kernel context)
+	
+	$ff00-$ffff	hardware related system vectors (IRQ, NMI, RESET)
+			(rest unused, why ??)
+                        (had been used for a jumptable of system vectors,
+                         this jumptable is gone with version 0.16)
+			
+	
+	>> lunix ... 209 pages free (53504 bytes)
+	
+	The initial memory-map is defined in "c64/initmemmap.s" and
+	"c64/io_map.s".
+	
+	
+	
+Kernel data structures
+======================
+
+Nearly all kernel variables and their location is defined in "system.h".
+
+All kernel variables have a "lk_" prefix.
+The prefix "lk_t" marks arrays [0-31] filled with per task kernel data.
+The prefix "tsp_" (tsp=task super page) marks an offset to the
+TSP, that holds additional per task data.
+The prefix "lkf_" marks user accessible kernel functions.
+
+
+Example:
+	...
+	ldx  lk_ipid	;; load IPID of current task
+	...
+	lda  #0
+	sta  tmpzp
+	lda  lk_ttsp,x  ;; get position (hi byte) of TSP of task with IPID=x
+	sei
+	sta  tmpzp+1
+	ldy  #tsp_ippid	;; get offset of ippid (parent's IPID)
+	lda  (tmpzp),y	;; get ippid
+	cli
+	...
+	
+	
+Zeropage:
+---------
+	
+lk_ipid ($02):
+  IPID of current task. (IPID = internal process ID)
+  The IPID's range is 0..31 and is used as an index to the various per
+  task data structures ("lk_t" prefixed).
+  At the same time the IPID is a unique identifier for a process. Be carefull
+  the IPID of a foreign process is only valid within atomic (sei,...,cli)
+  sections of code, because a foreign task may die and be replcaced by a new
+  task at any time. So normal applications should always use the 16bit PID 
+  to identify a foreign process, which is garantied to be unique over a long
+  period of time.
+  In contrast the IPID of the current task (lda lk_ipid) is fixed and can be 
+  used in non-atomic sections without any risk.
+  
+lk_timer ($03):
+  Time left for the current task (in units of jiffies 1/64s).
+  The value of the timer is counted down, when it reaches 0, there will be
+  a context switch to the next active task.
+  
+lk_tsp ($04):
+  pointer to current task's super page (16 bit).
+  This pointer is updated by the system after every context switch.
+  This way, you have access to system data of the current task at any time
+  with minimal overhead.
+  
+  eg.
+      ;; get PID of current task
+      ldy  #tsp_pid
+      lda  (lk_tsp),y
+      sta  pid_lo_byte
+      iny
+      lda  (lk_tsp),y
+      sta  pid_hi_byte
+      ...
+      
+lk_sleepcnt ($06):
+  time till next wakeup (16 bit, in units of jiffies)
+  information for the kernel, when to wake up the next sleeping task.
+  (there is a sleep system call)
+  
+lk_locktsw ($08):
+  flag for disabling taskswitching (do not write directly)
+  Sometimes you need longer atomic sections and don't want to disable
+  IRQ all the time. (The IRQ should never stay disabled for more than 1/64s)
+  There are two kernel calls to get around this problem:
+    lkf_locktsw - for disabling taskswitching (replacement for "sei")
+    lkf_unlocktsw - for enabling it again (replacement for "cli")
+  (lkf_locktsw,...,lkf_unlocktsw secitons can be nested!)
+  This feature is currently used by the console driver (for scrolling) and
+  by the memory allocation algorithm (lkf_mpalloc).
+  
+lk_systic ($09):
+  system jiffie counter (24 bit)
+  Incremented every 1/64 s.
+    
+lk_sleepipid ($12):
+  IPID of task to wakeup next (see lk_sleepcnt, lkf_sleep)
+  
+lk_cycletime ($13):
+  sum of lk_tslice of all running tasks
+  round trip time of the round robin scheduler (see lk_tslice).
+  
+lk_cyclefactor ($14):
+  shows how lk_tslice is calculated from each tasks priority (see lk_tslice).
+  Is a kind of measure for the systems load.
+  
+
+There are various zeropare areas for temporary usage:
+
+ userzp ($80..$bf) - user zeropage area
+ 
+   Each task can use (modify) zeropage byte in this area, but the contents
+   might get overwritten by another task (after taskswitching) unless you
+   tell the kernel to backup some of the userzp bytes for you.
+   
+   eg.
+     ;; need 10 bytes of userzp
+     lda  #10
+     jsr  lkf_set_zpsize
+     ;; now userzp+0 ... userzp+9 can be used
+ 
+     
+ syszp ($78..$7f) - System zeropage area
+ 
+   For reentrant kernel or kernel-module routines, that need local zeropage.
+   again the kernel must be told to backup the syszp, this is done by
+   setting the SZU (system zeropage used) bit in lk_tstatus.
+   
+   (it is also allowed to use syszp in atomic sections sei,...,cli or
+   lkf_locktsw,...,lkf_unlocktsw. But in that case the contents will vanish, 
+   when the atomic section is left!)
+   
+   eg.
+     ;; this kernel routine needs some zeropage
+     ldx  ipid
+     sei
+     lda  lk_tstatus
+     ora  #tstatus_szu
+     sta  lk_tstatus
+     cli
+     ...
+     (use syszp+0 ... syszp+7)
+     ...
+     ldx  ipid
+     sei
+     lda  lk_tstatus
+     and  #$ff-tstatus_szu
+     sta  lk_tstatus
+     cli
+     rts ;; return to task's code
+     
+ 
+ tmpzp ($70-$77) - temoprary zeropage
+ 
+   This zeropage area can be used in atomic sections only. (sei,..,cli or
+   lkf_locktsw,...,lkf_unlocktsw). The tmpzp contents will vanish at the
+   same time the atomic section is left! 
+ 
+   
+ irqzp ($60-$67) - IRQ zeropage
+ 
+   This zeropage area can be used within interrupt service routines (maskable
+   interrupts only!) or in code sections, that are sei,...,cli protected.
+   The irqzp contents will vanish at the same time the atomic section or
+   interrupt service routine is left!
+ 
+ nmizp ($68-$6f) - NMI zeropage
+ 
+   This zeropage area can be used within NMI service routines only !
+   (non maskable interrupts)
+   Since lunix only support a single NMI source, the nmizp's contents are 
+   guarantied to stay unchanged between interrupt events.
+
+
+Other kernel data:
+------------------
+
+lk_memnxt ($c000-$c0ff) 256 bytes
+
+ 1 byte for each internal memory page storing a pointer to the next page in a
+ page chain. (page chains are used to build objects with a size of more than
+ just one page) If it is the last (or only) page in a chain, the pointer
+ has the value $00.
+ 
+ The "lkf_free" system call resets all affected pointers to $01. ($01 would 
+ point to the CPU stack, which makes no sense)
+ 
+ 
+lk_memown ($c100-$c1ff) 256 bytes
+
+ 1 byte for each internal memory page storing the owner of the page.
+ For normal data pages, the owner is equal to the IPID of the owning task.
+ There are some other defined values:
+   memown_smb ($20) - SMB page (contains 8 "small memory blocks")
+   memown_cache ($21) - experimental command cache (not implemented)
+   memown_sys ($22) - occupied by kernel
+   memown_modul ($23) - used by a kernel module
+   memown_none ($ff) - no owner (unused page)
+   
+
+lk_memmap ($c280-$c29f) 32 bytes
+
+ 1 bit for each internal memory page.
+ Every 1 corresponds to a free internal page. (MSB first)
+ This bitmap is searched by all the memory allocation routines (internal RAM).
+ 
+ 
+lk_semmap ($c2a0-$c2a4) 5 bytes (40 bits)
+
+ 1 bit for each system semaphore.
+ Every 1 marks a used system resource (MSB first). Defined semaphores:
+   lsem_irq1 (0)  -  IRQ slot 1
+   lsem_irq2 (1)  -  IRQ slot 2
+   lsem_irq3 (2)  -  IRQ slot 3
+   lsem_alert (3) -  Realtime clock alert
+   lsem_nmi (4)   -  NMI
+   lsem_iec (5)   -  access to the IEC serial bus
+ 
+ There are special kernel functions to register a IRQ/Alert or NMI handler.
+ (lkf_hook_irq, lkf_hook_alert, lkf_hook_nmi) To unregister you have to call
+ the "lkf_unlock" semaphore function with the right argument.
+ (system semaphores are released automatically, when terminating a task)
+ 
+   
+lk_nmidiscnt ($c2a5)
+
+ Counts processes that have disabled NMI events.
+ Since NMI is non maskable by hardware (but must be masked sometime), there
+ must be a way to do it in software.
+ 
+  lkf_disable_nmi - is used to disable NMI
+  lkf_enable_nmi  - is used to enable NMI again (after disabling it, NMI is
+                    enabled by default)
+
+
+lk_taskcnt ($c2a6) 16 bit
+
+ Counts number of tasks (actually this will be the PID of next gernerated task).
+ 
+
+lk_timedive / lk_timedivm
+
+ Not implemented, thought for keeping some information on the CPU speed.
+
+
+Per task data
+-------------
+
+lk_tstatus[0..31] ($c200-$c21f)
+
+ Status information for each task:
+ 
+  bit 0-2 : tstatus_pri 
+            Priority 1-7  (0 is an illegal value)
+ 
+  bit 4   : tstatus_nosig
+            Task is in a intermediated state (birth/death).
+            At this time the task can not receive signals and can not be
+	    killed.
+	    
+  bit 5   : tstatus_nonmi
+            Set if task has disabled NMI (called lkf_disable_nmi)
+	    
+  bit 6   : tstatus_susp
+            Set if task is suspended, waiting for an external event
+	    (or sleeping)
+	    
+  bit 7   : tstatus_szu
+            Set if task currently uses the system zeropage (see above).
+	    
+  If status is all zero, it means this cpu slot is unused.
+	    
+	    
+lk_tnextt[0..31] ($c220-$c23f)
+
+ Number (=IPID) of the next task that will be on CPU. 
+ (for the round robin scheduler)
+ 
+ 
+lk_tslice[0..31] ($c240-$c25f)
+
+ Number if jiffies the current task stays on CPU before the system switches to 
+ the next running task. The scheduler tries to keep the round trip (sum 
+ of all lk_tslice values) time between 1/4 and 1/2 seconds.
+ 
+ Example:
+
+                               +---------+    after 4 jiffies
+                after  +------>! Task  0 !--------+
+              8 jiffies!       +---------+        !
+                       !                          v
+                       !                      +---------+
+                       !                      ! Task  1 !
+                  +---------+                 +---------+
+                  ! Task 12 !                     !
+                  +---------+                     !after 4 jiffies
+                       ^                          v
+                       !                      +---------+
+                       !                      ! Task  4 !
+                       !                      +---------+
+               after   !                          !
+             1 jiffie  !        +---------+       !
+                       +--------! Task  7 !<------+
+                                +---------+       after 4 jiffies
+		
+
+              5 running tasks, 3 different priorities
+	      task 0,1,4 with normal priority
+	      task 7 with low priority
+	      task 12 with high priority
+	      and a unknown number of tasks waiting.
+	      Round trip time is 1+4+4+4+8 = 21 jiffies =~ 21/64 sec.
+
+
+lk_ttsp[0..31] ($c260-$c27f)
+
+ Hi byte of the task's super page, that holds additional per task data.
+ 
+
+Additional per task data in TSP
+-------------------------------
+
+tsp_time (TSP + $00) 5 bytes
+
+ CPU time (in units of CPU ticks) the task has consumed so far.
+ 
+
+tsp_wait0, tsp_wait1 (TSP + $05/$06)
+
+ Waitstate of the task (only valid if "tstatus_susp" is set in "lk_tstatus",
+ see above). The define waitstates are:
+ 
+   $01/$xx - waitc_sleeping/$xx 
+   
+    Task has called "lkf_sleep" and is currently sleeping.
+    
+   $02/$xx - waitc_wait/$xx
+   
+    Task has called "lkf_wait" and waits for a child to finish.
+
+   $03/$xx - waitc_zombie/$xx
+   
+    Task has finished, but parent hasn't received the exitcode yet.
+    ($xx is the IPID of the parent)
+    
+   $04/$xx - waitc_smb/$xx
+   
+    Task is waiting for a free SMB (small memory block).
+    This happens, when the system gets low on internal memory.
+    
+   $05/$xx - waitc_imem/$xx
+   
+    Task is waiting for more free internal memory.
+    This happens, when the system gets low on internal memory or the task
+    tries to allocate a huge chunk of internal memory, more than is available.
+
+   $06/$xx - waitc_stream/$xx
+   
+    Task is waiting for a stream to become ready (either ready for reading or
+    writing). $xx is the global ID of the stream.
+    
+   $07/$xx - waitc_semaphore
+   
+    Task is waiting for a system semaphore to become available.
+    $xx is the number of the semaphore.
+    
+   $08/$xx - waitc_brkpoint
+   
+    Task hit breakpoint $xx and has stopped. This is for debugging. The code
+    may contain some brk instructions that are followed by a single ID byte.
+    
+    eg.
+    
+      ...
+      brk        ; reached breakpoint with ID=$12
+      .byte $12
+      ...        ; continue
+    
+    in the above case, the task will be suspended with waitstate $08/$12.
+    After unblocking (un-suspending) the task will continue to run.
+    
+    
+tsp_semmap (TSP + $07) 5 bytes (40 bits)
+
+ Same function as the global variable "lk_semmap" but in respect to the 
+ current task. Each bit is related to a system semaphore, 1 marks a locked
+ semaphore.
+ 
+ 
+tsp_signal_vec (TSP + $0c) 8*2 byte (8 signal vectors)
+
+ A task can receive up to 8 different signals. A signal is a software
+ emulated interrupt. The address for the signal handler are stored in this
+ table. (not fully implemented yet)
+ 
+ Defined signal vectors:
+ 
+   sig_chld (0 -> handler address = (TSP+$0c))
+   
+     child has terminated
+     
+   sig_term (1 -> handler address = (TSP+$0e))
+   
+     stop-key, user break
+
+
+tsp_pdmajor/tsp_pdminor (TSP + $25/$26)
+
+ Current working device (major/minor), comparable to the current working
+ directory known in UNIX or MSDOS systems.
+ 
+ 
+tsp_ftab (TSP + $1d) MAX_FILES (8) bytes
+
+ Global stream IDs of up to 8 open streams, mapping from local ID to global
+ ID. Predefined local stream IDs are:
+ 
+   0 (STDIN) stream for standard input
+   1 (STDOUT) stream for standard output
+   2 (STDERR) stream for standard error output
+   
+
+tsp_pid (TSP + $27) 2 bytes
+
+ PID of current task (lo/hi).
+ 
+ 
+tsp_ippid (TSP + $29)
+
+ IPID (internal process ID) of parent task.
+ 
+ 
+tsp_stsize (TSP + $2a)
+
+ Size of the current task's CPU stack on last taskswitch.
+ 
+ 
+tsp_syszp (TSP + $70-$77)
+
+ Copy of the task's system zeropage area (if tstatus_szu was set in lk_tstatus
+ on last taskswitch).
+ 
+ 
+tsp_swap (TSP + $80...$ff)
+
+ Copy of the task's CPU stack.
+
+ 
+Description of LUnix' objects
+=============================
+
+Memory:
+  internal memory page
+  
+  A page is a block of 256 bytes beginning at an address that is aligned
+  to 256 bytes. So a single byte is enough to be a unique identifier of a
+  internal memory page. (hi byte)
+  LUnix has an overhead of exactly 17 bit per available internal page.
+  8 bit - to store the owner/usage of each page
+  8 bit - to store the relation between differen pages (to build up chains of
+          pages for larger parts of internal memory)
+  1 bit - in a bitmap that reflects which pages are in use and which are
+          available.
+  There are 2 (3) kernel functions for allocating internal memory. The simples
+  is used to alloca a single page. "spalloc" scans the internal address space
+  beginning with page 254 downwards until a free page is found. "mpalloc" 
+  uses a more sophisticated algorithm, it searches (beginning with page 2) for 
+  a "best fit". Best fit means to minimize the fragmentation.
+  Why two different algorithms? The extensive search that is required for a
+  "best fit" solution takes much CPU time. If just a single page is to be
+  allocated, an extensive search is not that effective and should be avoided.
+  "malloc" is a wrapper around "mpalloc" for normal user applications, and has 
+  an easier interface and better error handling than "mpalloc".
+  
+  small memory block, SMB
+  
+  A "small memory block" is a block of 32 bytes aligned to 32. The system
+  can handle up to 255 SMBs. SMBs are uniquely identified by a 8 bit value, 
+  the SMB-ID. SMBs are not used by user applications directly. Every time the
+  kernel needs to store some smaller amounts of data, a SMB is used.
+  Each stream / opened file has its related SMB for storing the state and
+  other properties of the stream.
+  The memory that is used for SMBs is dynamically allocated using the "spalloc"
+  kernel function.
+  
+  
+Task (or Process):
+  
+  A task is a piece of code, that runs in on its own virtual CPU.
+  It has its own stack, zeropage and environment. (environment means
+  stdout/in/err stream, working device, ...)
+  There is no context switch, when the task calls and enters a kernel 
+  function. Kernel functions must be reentrant either by atomizing critical
+  sections (sei,...,cli or lkf_locktsw,...,lkf_unlocktsw), by semaphore like
+  protection of critical sections, or by using a special zeropage
+  area, that can be added dynamically to the task's context (syszp).
+   
+  
+Module / Kernel Module:
+
+  A "module" is a way to add functionality to the running system. A 3 byte
+  sequence is used to identify a module type. There can be several modules of 
+  the same type present at the same time. So an additinal ID in needed to 
+  uniquely identify a module.
+  
+  example:
+    The 3 byte sequence "ser" identifies a module for accessing a serial
+    interface driver. Imagine you have two serial interfaces connected to your
+    computer and you have loaded two drivers for accessing them. In this case
+    "ser"#0 provides access to the first, "ser"#1 access to the second serial
+    interface.
+        
+  If the type sequence of a modul matches, it has a guarantied, well known 
+  software interface.
+  The acquisition of a module is done by calling "lkf_get_moduleif".
+  (look into apps/microterm.s for an example) Get_Moduleif just copies a 
+  short JMP-table into the current task's code and calls the "lock" function
+  of the accessed module to gain exclusive access.
+  The functions that are provided by the module to the task must be
+  implemented the same way kernel functions are. (the is no context switch,
+  when entering module code).
+      
+  A normal task can add several modules to the system. It is also possible
+  to permanently add module code to the system (the module related part of the
+  originating task's code just stays after the task is gone. Look into
+  modules/swiftlink.s for an example).
+  
+
+LUnix native executable format
+==============================
+
+(things might very well change)
+(if enabled, LUnix also supports .o65 binaries, read below)
+
+All LNG binaries start with some magic bytes:
+
+ FF FE   .byte >LNG_MAGIC, <LNG_MAGIC
+ 00 08   .byte >LNG_VERSION, >LNG_VERSION
+
+LNG_MAGIC and hi-byte of LNG_VERSION must fit exactly to the kernel, while
+lo-byte of LNG_VERSION must not be greater than that one of the kernel.
+These magic bytes are followed by a single byte holding the number of pages
+to system has to allocate before loading and executing the code.
+The last byte of the header holds the hi-byte of the address for which the
+code has been written.
+
+eg.
+   start_of_code equ $1000
+
+        .org start_of_code
+
+        .byte >LNG_MAGIC,   <LNG_MAGIC
+        .byte >LNG_VERSION, <LNG_VERSION
+        .byte >(end_of_code-start_of_code+255)
+        .byte >start_of_code
+
+   main:
+        (...)
+
+   end_of_code:
+
+
+Before Lunix is able to execute the loaded code, the code has to be relocated.
+All absolute addresses in the code must be adapted to the new location in
+memory. This is done by simply re-assembling the code. Every 3byte 
+instruction the disassembler finds, must be adapted. (if the destination
+address lies within the current code).
+
+This simple algorithm has some problems. What about tables of raw data, that
+are part of a programm. Such data inlays can not be disassembled. The 
+relocator might get confused and change the wrong bytes in the code.
+To prevent this, there are some defined pseudo instructions to give some
+hints to the relocator.
+
+eg.
+       (...)
+       lda  table,x
+       rts
+
+       ; insert pseodo opcode that is  evaluated by the code relocator
+       RELO_JMP(end_of_data_inlay) 
+
+   table:
+       .text "Hello World!"
+       .text "This text must not be relocated"
+       .byte 0
+
+   end_of_data_inlay:
+
+       ldy  #0
+       (...)
+       
+The above pseudo instruction ($0c $xx $yy) tells the relocator to continue
+at address $yyxx, skipping a possible data inlay.
+The relocator continues disassembling and adapting the code until it reaches
+the end_of_code marker ($02, again a pseudo opcode).
+The end_of_code marker MUST be present, if not the relocator exits with an
+error (lerr_illcode = Illegal Code Error).
+
+Some coding pitfalls:
+---------------------
+
+Example 1 for illegal code
+
+      (...)
+   case1:
+      lda  #$03
+      .byte $2c             ; use "SKIP_WORD" macro anyway
+   case2:
+      lda  #$01
+      (...)
+
+ Illegal because in the relocator's view it looks like:
+
+       (...)
+       lda  #$03
+       bit  $01a9       <- abolute address, that might get adapted!!
+       (...)
+
+
+Example 2 for illegal code
+
+       (...)
+       ldx  #<my_pointer    ; load lo-byte of address
+       ldy  #>my_pointer    ; load hi-byte of address
+       (...)
+
+   my_pointer:
+       (...)
+
+ Illegal, because the hi-byte of the address is part of a 2byte instruction
+ and will therefore not be adapted by the relocator !
+ 
+ Correct version:
+
+       (...)
+    mark:
+       bit  my_pointer ; 3byte instruction that will be adapted
+
+       (...)
+       ldx  #<my_pointer
+       ldy  mark+2     ; adapted value of #>my_pointer
+       (...)
+
+    my_pointer:
+       (...)
+
+
+.o65 format support
+===================
+If enabled (#define HAVE_O65 in machine config.h) LUnix supports also .o65
+relocatable file format. While it is not required to have it in order to run
+applications that come with LNG in apps/ directory, it might be handy in the
+future, when with upcoming cc65 package release LUnix will be supported as
+one of the targets. Only ca65+ld65 targets, not C compiler because of cc65
+author's problems due to conflict between cc65 and GNU GPL license.
+
+You can learn more about .o65 on Andre Fachat's pages at:
+http://www.6502.org/users/andre/index.html
+For more information about writing .o65 apps for LNG read apps/README and
+example application - samples/ca65/skeleton.ca65.s.
+It is very little effort to add a new .o65 source to apps, Makefiles will
+do everything for you.
+
+The current implementation requires that the object file imports LUNIXKERNEL
+label, only in 16-bit relocation mode (like: jmp LUNIXKERNEL+4) with even
+offsets (0, 2, 4, ...). The order of calls is exactly the same as in
+jumptab.h (LUNIXKERNEL+4 would be fopen).
+Execution address must be in the first byte of TEXT segment.
+If there is header option describing OS it must have value 2 (LUnix), version
+byte is ignored.
+Zero page base address should be equal to nmizp, which is the first byte on
+zero page that applications can use.

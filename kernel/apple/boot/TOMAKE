@@ -1,0 +1,6 @@
+echo I don\'t know how to write gmakefiles! :\(
+echo If boot.dsk does not exist, do diskimage boot.dsk -f to format new one..
+
+luna -Oq bootldr1.s -o bootldr1.o
+lld -a -s 2048 -o bootldr1 bootldr1.o
+diskimage boot.dsk -b bootldr1 -t0 -s0

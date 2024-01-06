@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="generator" content="HTML Tidy, see www.w3.org" />
+<title>popclient</title>
+<body>
+usage: popclient configname [savefile]
+
+<p>The popclient application can be used to communicate with another
+host using the Post Office Protocol version 3 (POP3) as defined in
+RFC1939. POP3 is used to retrieve and manipulate a remote eMail folder.</p>
+<p>The configuration is stored in a file with the configname extended 
+by ".p3". The format of the configuration file is
+shown in the following example:</p>
+<p>
+ 192.168.0.33  # address of server<br>
+ dumbo # login used on this server<br>
+ 4711  # password
+</p>
+<p>The IPaddrss of the server must be known in digits! Popclient accepts
+the name of an optional savefile at the commandline. If a savefile
+is specified the "get" command can be used to retrieve eMails that are 
+stored in a local file (savefile).</p>
+
+</body></html>

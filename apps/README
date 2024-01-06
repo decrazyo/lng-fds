@@ -1,0 +1,43 @@
+Compiling the applications using luna:
+======================================
+
+ a simple make should do it.
+
+To compile some applications by hand do...
+
+ export LUPO_INCLUDEPATH=../kernel
+ luna -R -o lsmod lsmod.s
+
+If you plan to write your own application(s), you might want 
+to use "skeleton.s" as a template to start from. 
+
+Starting with LNG version 0.17 there are also some library functions that
+might help you to finish your application - in that case take a look
+at "amalloc.s" on how to write applications that use library functions.
+
+Compiling the applications using ca65:
+======================================
+
+ ca65 is assembler from cc65 (C crosscompiler) package, http://www.cc65.org
+ You will need ca65 (assembler) and ld65 (linker).
+
+ A simple make will do but:
+    - your application name must have .o65 extension
+    - your application source must have .ca65.s extension
+    - *.o65 name must be added to APPS= list in Makefile
+ Naming scheme is just to not mess with Makefile
+
+ During developing time either compile your application by hand or
+ remove '-' from lines under %.o65 rule in Makefile (it will stop if
+ there would be error).
+ 
+ To compile by hand do:
+   export LUPO_INCLUDEPATH=$PWD/../include
+   lupo -dUSING_CA65=1 name.ca65.s -o name.o65.s
+   ca65 -t lunix name.o65.s
+   ld65 -t lunix -o name.o65 name.o65.o
+
+ LNG library in lng/lib directory cannot be used with ca65 apps.
+
+ For more rules and information about writing ca65 apps read comments and
+ code in "skeleton.ca65.s"

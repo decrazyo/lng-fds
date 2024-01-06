@@ -1,0 +1,14 @@
+ sfifo53 - s(imple) driver for 16650 based rs232 interface
+ sswiftlink - s(imple) driver for swiftlink cardridge
+ srs232_std - s(imple) driver for standard userport rs232 interface (incomplete)
+
+ swiftlink - driver for swiftlink cardridge
+
+The simple drivers have a different API (including getc and putc functions)
+easier to handle, but quite limited (busy-wait-getc/putc) and not suited
+well for TCP/IP stuff.
+Microterm and getty rely on this simple API.
+
+i moved tcpip, slip, ppp and loop into the apps directory because they are
+not dependent on the machine at all. Machine independent stuff should go
+into the application directory.
