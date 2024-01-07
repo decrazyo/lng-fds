@@ -27,6 +27,13 @@
 # define debug3       $420  	    ; upper left corner of the screen
 #endif
 
+#ifdef NINTENDO
+;// TODO: add debug definitions
+;// # define debug1       ???   ; foreground color
+;// # define debug2       ???   ; background color
+;// # define debug3       ???   ; upper left corner of the screen
+#endif
+
 #ifdef DEBUG
 # begindef db(textstring)
 	php

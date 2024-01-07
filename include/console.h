@@ -48,5 +48,13 @@
 #  define size_y	24
 #  define MAX_CONSOLES		1
 #endif
+#ifdef PPU_CONSOLE
+;// defines for PPU console
+;// TODO: add more defines
+#  define size_x	32
+#  define size_y	30
+#  define MAX_CONSOLES		1
+#endif
+
 
 #endif

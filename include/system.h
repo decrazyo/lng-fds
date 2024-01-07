@@ -2,6 +2,12 @@
 #ifndef _SYSTEM_H
 #define _SYSTEM_H
 
+#include <config.h>
+
+#ifndef SYSTEM_MEMORY
+#define SYSTEM_MEMORY $ff00
+#endif
+
 ;// LNG-magic and version
 #define LNG_MAGIC   $fffe
 #define LNG_VERSION $0015   ;// in decimal => 0, 21
@@ -99,26 +105,26 @@
 #  define memown_scr      $24 ;// memory mapped video RAM
 #  define memown_netbuf   $25 ;// page used for network buffers
 #  define memown_none     $ff ;// unused page
-#define lk_memmap    $ff85    ;// 32 bytes - 1 bit for each internal page
+#define lk_memmap    SYSTEM_MEMORY+$85    ;// 32 bytes - 1 bit for each internal page
 
 ;// per task system data (not in tsp for faster access)
 ;// each arrays of 32 (index is internal task ID)
-#define lk_tstatus   $ff05    ;// status of task
+#define lk_tstatus   SYSTEM_MEMORY+$05    ;// status of task
 #  define tstatus_szu     $80 ;// if task uses the syszp zeropage
 #  define tstatus_susp    $40 ;// if task is not getting CPU
 #  define tstatus_nonmi   $20 ;// if task has disabled NMI
 #  define tstatus_nosig   $10 ;// no signals / no kill (birth/death)
 #  define tstatus_pri     $07 ;// priority (value is 1..7, not 0!)
-#define lk_tnextt    $ff25    ;// number of next task to switch to
-#define lk_tslice    $ff45    ;// length of time slice
-#define lk_ttsp      $ff65    ;// hi-byte of tasks TSP
+#define lk_tnextt    SYSTEM_MEMORY+$25    ;// number of next task to switch to
+#define lk_tslice    SYSTEM_MEMORY+$45    ;// length of time slice
+#define lk_ttsp      SYSTEM_MEMORY+$65    ;// hi-byte of tasks TSP
 
 ;// SMB related
-#define lk_smbmap    $ffa5    ;// 32 bytes, bitmap of unused SMB-IDs
-#define lk_smbpage   $ffc5    ;// 32 bytes, base address of SMB-pages (hi byte)
+#define lk_smbmap    SYSTEM_MEMORY+$a5    ;// 32 bytes, bitmap of unused SMB-IDs
+#define lk_smbpage   SYSTEM_MEMORY+$c5    ;// 32 bytes, base address of SMB-pages (hi byte)
                               ;// (byte 0 not used)
 ;// semaphores
-#define lk_semmap    $ffe5    ;// 5 bytes (enough for 40 semaphores)
+#define lk_semmap    SYSTEM_MEMORY+$e5    ;// 5 bytes (enough for 40 semaphores)
 #  define lsem_irq1       0   ;// byte 0, bit 0
 #  define lsem_irq2       1   ;// byte 0, bit 1
 #  define lsem_irq3       2   ;// byte 0, bit 2
@@ -129,11 +135,11 @@
 #  define lsem_o65        6   ;// byte 0, bit 6  (o65 relocator and its special variables)
 
 ;// other stuff
-#define lk_nmidiscnt $ffea    ;// counts number of "nonmi" tasks
-#define lk_taskcnt   $ffeb    ;// counts number of tasks (16 bit)
-#define lk_modroot   $ffed    ;// root of linked list of modules (16bit)
-#define lk_consmax   $ffef    ;// absolute number of consoles
-#define lk_archtype  $fff0    ;// machine architecture
+#define lk_nmidiscnt SYSTEM_MEMORY+$ea    ;// counts number of "nonmi" tasks
+#define lk_taskcnt   SYSTEM_MEMORY+$eb    ;// counts number of tasks (16 bit)
+#define lk_modroot   SYSTEM_MEMORY+$ed    ;// root of linked list of modules (16bit)
+#define lk_consmax   SYSTEM_MEMORY+$ef    ;// absolute number of consoles
+#define lk_archtype  SYSTEM_MEMORY+$f0    ;// machine architecture
 #  define larchf_type     %00000011 ;// type of machine
 #   define larch_c64       0
 #   define larch_c128      1

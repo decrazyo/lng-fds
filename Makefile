@@ -11,8 +11,9 @@ COMPFLAGS=
 # MACHINE=c64 to create Commodore64 version (binaries in bin64)
 # MACHINE=c128 for Commodore128 version (binaries in bin128)
 # MACHINE=atari for Atari 65XE/800/130 version (no binaries right now)
+# MACHINE=nintendo for NES/Famicom (binaries in bintendo)
 
-MACHINE=c64
+MACHINE=nintendo
 
 # Modules to include in package (created with "make package")
 
@@ -45,19 +46,23 @@ IAPPS=connd ftp tcpipstat tcpip ppp loop slip httpd telnet popclient
 
 .PHONY : all apps kernel libstd help package clean distclean devel
 
-export PATH+=:$(PWD)/devel_utils/:$(PWD)/devel_utils/atari:.
+export PATH+=:$(PWD)/devel_utils/:$(PWD)/devel_utils/nintendo:$(PWD)/devel_utils/atari:.
 export LUPO_INCLUDEPATH=:$(PWD)/kernel:$(PWD)/include
 export LNG_LIBRARIES=$(PWD)/lib/libstd.a
 export COMPFLAGS
 export MACHINE
 
-ifeq "$(MACHINE)" "atari"
+ifeq "$(MACHINE)" "nintendo"
+    BINDIR=bintendo
+else ifeq "$(MACHINE)" "atari"
     BINDIR=binatari
 else
     BINDIR=$(patsubst c%,bin%,$(MACHINE))
 endif
 
-ifeq "$(MACHINE)" "atari"
+ifeq "$(MACHINE)" "nintendo"
+all : kernel
+else ifeq "$(MACHINE)" "atari"
 all : kernel
 else
 all : kernel libstd apps help
@@ -81,12 +86,25 @@ help :
 
 devel :
 	$(MAKE) -C devel_utils
-	$(MAKE) -C devel_utils/atari
-	$(MAKE) -C devel_utils/apple
+	$(MAKE) -C devel_utils/nintendo
+	# atari dev tools fail to build. commenting these out for now.
+	#$(MAKE) -C devel_utils/atari
+	#$(MAKE) -C devel_utils/apple
 
 binaries: all
 	-mkdir $(BINDIR)
 	-cp kernel/boot.$(MACHINE) kernel/lunix.$(MACHINE) $(MODULES:%=kernel/modules/%) $(BINDIR)
+
+nintendodisc: nintendopackage
+	mkfds -# -i lunix.fds pkg/kyodaku.bin pkg/ascii.bin pkg/reset.bin pkg/boot.bin pkg/lunix.bin
+
+nintendopackage: binaries
+	-mkdir pkg
+	mkbin -n 'KYODAKU-' -a 0x2800 -t 2 pkg/kyodaku.bin $(BINDIR)/kyodaku.nam
+	mkbin -n 'ASCII' -a 0x0000 -t 1 pkg/ascii.bin $(BINDIR)/ascii.chr
+	mkbin -n 'RESET' -a 0xdffc -s 2 pkg/reset.bin $(BINDIR)/boot.nintendo
+	mkbin -n 'BOOT' pkg/boot.bin $(BINDIR)/boot.$(MACHINE)
+	mkbin -n 'LUNIX' pkg/lunix.bin $(BINDIR)/lunix.$(MACHINE)
 
 cbmpackage : binaries
 	-mkdir pkg
@@ -138,7 +156,10 @@ cbmdisc: binaries
 		; do c1541 -attach ../lunix-$(MACHINE).d64 -write $$i > /dev/null \
 		; done
 
-ifeq "$(MACHINE)" "atari"
+ifeq "$(MACHINE)" "nintendo"
+disc:	nintendodisc
+package: nintendopackage
+else ifeq "$(MACHINE)" "atari"
 disc:	ataridisc
 package: ataripackage
 else
@@ -158,9 +179,11 @@ distclean : clean
 	$(MAKE) -C devel_utils clean
 	$(MAKE) -C devel_utils/atari clean
 	$(MAKE) -C devel_utils/apple clean
+	$(MAKE) -C devel_utils/nintendo clean
 	-cd kernel ; rm -f boot.c* lunix.c* globals.txt
 	-cd bin64 ; rm -f $(MODULES) boot.* lunix.* lng.c64
 	-cd bin128 ;  rm -f $(MODULES) boot.* lunix.* lng.c128
+	-cd bintendo ; rm -f $(MODULES) boot.* lunix.*
 	-cd include ; rm -f jumptab.h jumptab.ca65.h ksym.h zp.h
 	-rm -rf pkg binatari
 	find . -name "*~" -exec rm -v \{\} \;

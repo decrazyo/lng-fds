@@ -6,6 +6,7 @@
 #include <system.h>
 #include <fs.h>
 #include <kerrors.h>
+#include MACHINE_H
 
 		;; use one SMB for each opened file (lock into fs.h for details)
 		;;  byte 0 - major
@@ -169,14 +170,22 @@ found:		iny
 		clc
 		rts	 ; return with Y=major, X=minor, c=0, [syszp]=file
 
+
 		;; list of prefixes is hardcoded into the kernel for now
 pprefix:
 		.text "/"
 		.byte 0, MAJOR_SYS,0
+#ifdef HAVE_FDS
+		.text "fds0"
+		.byte 0, MAJOR_FDS,0 ; read-only native FDS partition.
+		.text "fds1"
+		.byte 0, MAJOR_FDS,1 ; read-write FAT or EXT like partition.
+#else
 		.text "disk8"
 		.byte 0, MAJOR_IEC,8
 		.text "disk9"
 		.byte 0, MAJOR_IEC,9
+#endif
 #ifdef HAVE_IDE64
 		.text "ide64"
 		.byte 0, MAJOR_IDE64, 0
@@ -211,7 +220,11 @@ mtab_fopen equ [*]-2
 		.word fs_cons_fopen-1
 		.word err_notimp-1		; fs_sys
 		.word err_notimp-1		; fs_user
+#ifdef HAVE_FDS
+		.word fs_fds_fopen-1
+#else
 		.word fs_iec_fopen-1
+#endif
 #ifdef HAVE_IDE64
 		.word fs_ide64_fopen-1
 #else
@@ -223,7 +236,11 @@ mtab_fgetc equ [*]-2
 		.word fs_cons_fgetc-1
 		.word err_notimp-1		; fs_sys
 		.word fs_user_fgetc-1
+#ifdef HAVE_FDS
+		.word fs_fds_fgetc-1
+#else
 		.word fs_iec_fgetc-1
+#endif
 #ifdef HAVE_IDE64
 		.word fs_ide64_fgetc-1
 #else
@@ -235,7 +252,11 @@ mtab_fputc equ [*]-2
 		.word fs_cons_fputc-1
 		.word err_notimp-1		; fs_sys
 		.word fs_user_fputc-1
+#ifdef HAVE_FDS
+		.word fs_fds_fputc-1
+#else
 		.word fs_iec_fputc-1
+#endif
 #ifdef HAVE_IDE64
 		.word fs_ide64_fputc-1
 #else
@@ -247,7 +268,11 @@ mtab_fclose equ [*]-2
 		.word fs_cons_fclose
 		.word fs_sys_fclose		; fs_sys
 		.word fs_user_fclose
+#ifdef HAVE_FDS
+		.word fs_fds_fclose
+#else
 		.word fs_iec_fclose
+#endif
 #ifdef HAVE_IDE64
 		.word fs_ide64_fclose
 #else
@@ -259,7 +284,11 @@ mtab_fcmd equ [*]-2
 		.word err_notimp-1		; fs_cons
 		.word err_notimp-1		; fs_sys
 		.word err_notimp-1		; fs_user
+#ifdef HAVE_FDS
+		.word fs_fds_fcmd-1
+#else
 		.word fs_iec_fcmd-1
+#endif
 #ifdef HAVE_IDE64
 		.word fs_ide64_fcmd-1
 #else
@@ -271,7 +300,11 @@ mtab_fopendir equ [*]-2
 		.word err_notimp-1		; fs_cons
 		.word fs_sys_fopendir-1		; fs_sys
 		.word err_notimp-1		; fs_user
+#ifdef HAVE_FDS
+		.word fs_fds_fopendir-1
+#else
 		.word fs_iec_fopendir-1
+#endif
 #ifdef HAVE_IDE64
 		.word fs_ide64_fopendir-1
 #else
@@ -283,7 +316,11 @@ mtab_freaddir equ [*]-2
 		.word err_notimp-1		; fs_cons
 		.word fs_sys_freaddir-1		; fs_sys
 		.word err_notimp-1		; fs_user
+#ifdef HAVE_FDS
+		.word fs_fds_freaddir-1
+#else
 		.word fs_iec_freaddir-1
+#endif
 #ifdef HAVE_IDE64
 		.word fs_ide64_freaddir-1
 #else

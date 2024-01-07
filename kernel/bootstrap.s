@@ -82,6 +82,53 @@ start:
 		bne  -
 
 		;; set pointer to new interrupt routine
+#ifdef HAVE_FDS
+		lda  #$ff
+
+		; the FDS BIOS has 3 built in IRQ handlers and 1 redefinable IRQ handler.
+		; the value in FDS_IRQ_CTRL will control which IRQ handler is executed.
+		; FDS_IRQ_CTRL == #%00xxxxxx -> BIOS disk skip bytes
+		; FDS_IRQ_CTRL == #%01xxxxxx -> BIOS disk transfer
+		; FDS_IRQ_CTRL == #%10xxxxxx -> BIOS acknowledge and delay
+		; FDS_IRQ_CTRL == #%11xxxxxx -> FDS_IRQ
+		ldx  #<lkf_irq_handler
+		ldy  #>lkf_irq_handler
+		stx  FDS_IRQ
+		sty  FDS_IRQ+1
+		sta  FDS_IRQ_CTRL
+
+		; the FDS BIOS supports 3 redefinable NMI handlers.
+		; we will install the kernel NMI handler for all 3. why not.
+		; the value in FDS_NMI_CTRL will control which NMI handler is executed.
+		; FDS_NMI_CTRL == #%00xxxxxx -> NMI disabled.
+		; FDS_NMI_CTRL == #%01xxxxxx -> FDS_NMI1
+		; FDS_NMI_CTRL == #%10xxxxxx -> FDS_NMI2
+		; FDS_NMI_CTRL == #%11xxxxxx -> FDS_NMI3
+		ldx  #<lkf_nmi_handler
+		ldy  #>lkf_nmi_handler
+		stx  FDS_NMI1
+		sty  FDS_NMI1+1
+		stx  FDS_NMI2
+		sty  FDS_NMI2+1
+		stx  FDS_NMI3
+		sty  FDS_NMI3+1
+		sta  FDS_NMI_CTRL
+
+		; the FDS BIOS has a built in RESET handler and a redefinable RESET handler.
+		; the value in FDS_RESET_CTRL will control which IRQ handler is executed.
+		; if FDS_RESET_CTRL == #$35 and FDS_RESET_CTRL+1 == #$53
+		; then FDS_RESET is executed.
+		; otherwise the FDS BIOS RESET handler is executed.
+		ldx  #<lkf_panic
+		ldy  #>lkf_panic
+		stx  FDS_RESET
+		sty  FDS_RESET+1
+		lda  #$35
+		sta  FDS_RESET_CTRL
+		lda  #$53
+		sta  FDS_RESET_CTRL+1
+
+#else
 		ldx  #<lkf_irq_handler
 		ldy  #>lkf_irq_handler
 		stx  $fffe
@@ -94,6 +141,7 @@ start:
 		ldy  #>lkf_panic		; never called, because ROM will be there
 		stx  $fffc
 		sty  $fffd
+#endif
 
 		;; first init process table
 		lda  #0
@@ -173,13 +221,23 @@ start:
 
 #		include MACHINE(irqinit.s)
 
+; TODO: define kernel address in the makefile as a compiler flag.
+
 		;; allocate (lock) kernel-memory
 		jsr  lkf_locktsw		; raw_alloc does unlocktsw!
+#ifdef HAVE_FDS
+		lda  #$80				; begin of kernel ($8000 = 32768)
+#else
 		lda  #$20				; begin of kernel ($2000 = 8192)
+#endif
 		sta  tmpzp+3
 		lda  #>lkf_end_of_kernel
 		sec
+#ifdef HAVE_FDS
+		sbc  #$80
+#else
 		sbc  #$20
+#endif
 		sta  tmpzp
 		lda  #memown_sys
 		sta  tmpzp+4
@@ -307,17 +365,17 @@ to_no_reu:
 		lda  $de60
 		cmp  $de60
 		bne  noide64
-		cmp  #$49			; "I"
+		cmp  #$49			; "I"
 		bne  noide64
 		lda  $de61
 		cmp  $de61
 		bne  noide64
-		cmp  #$44			; "D"
+		cmp  #$44			; "D"
 		bne  noide64
 		lda  $de62
 		cmp  $de62
 		bne  noide64
-		cmp  #$45			; "E"
+		cmp  #$45			; "E"
 		beq  ++				; found
 noide64:	ldx  #0
 	-	lda  noide64_txt,x
@@ -378,6 +436,9 @@ welcome_txt:
 #endif
 #ifdef ANTIC_CONSOLE
 		.text "  - ANTIC/GTIA console",$0a
+#endif
+#ifdef PPU_CONSOLE
+		.text "  - PPU console",$0a
 #endif
 #ifdef MULTIPLE_CONSOLES
 		.text "  - multiple consoles",$0a
@@ -517,6 +578,9 @@ add_task_simple:
 #endif
 #ifdef ANTIC_CONSOLE
 # include "opt/antic_console_init.s"
+#endif
+#ifdef PPU_CONSOLE
+# include "opt/ppu_console_init.s"
 #endif
 
 #ifdef PCAT_KEYB

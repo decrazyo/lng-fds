@@ -6,6 +6,7 @@
 #define MAJOR_SYS     3
 #define MAJOR_USER    4
 #define MAJOR_IEC     5
+#define MAJOR_FDS     5
 #define MAJOR_IDE64   6
 
 #define fmode_ro  0
@@ -45,6 +46,8 @@
 #  define iecstatus_timeout       $20
 #define iecsmb_secadr 6
 #define iecsmb_dirstate 7
+
+;// TODO: define fdssmb_* stuff as needed.
 
 #define usersmb_ufunc 5
 #define fsuser_fgetc  1

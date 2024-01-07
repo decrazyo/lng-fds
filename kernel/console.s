@@ -31,6 +31,9 @@ beep:
 		lda #%00100001		; turn on sound
 		sta SID_VCREG1
 #endif
+#ifdef HAVE_APU
+; TODO: add APU beep code. would this interfere with using the APU as a timer?
+#endif
 		rts
 
 		;; function: printk
@@ -91,4 +94,8 @@ dirty equ *+1
 
 #ifdef ANTIC_CONSOLE
 # include "opt/antic_console.s"
+#endif
+
+#ifdef PPU_CONSOLE
+# include "opt/ppu_console.s"
 #endif
