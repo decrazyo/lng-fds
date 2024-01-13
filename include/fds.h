@@ -1,65 +1,97 @@
-#ifndef _FS_H
-#define _FS_H
 
-#define MAJOR_PIPE    1
-#define MAJOR_CONSOLE 2
-#define MAJOR_SYS     3
-#define MAJOR_USER    4
-#define MAJOR_IEC     5
-#define MAJOR_FDS     5
-#define MAJOR_IDE64   6
+;// definitions for the Famicom disk system (FDS) RAM adapter.
 
-#define fmode_ro  0
-#define fmode_wo  1
-#define fmode_rw  2
-#define fmode_a   3
+#ifndef _FDS_H
+#define _FDS_H
 
-#define fcmd_del   0
-#define fcmd_chdir 1
-#define fcmd_mkdir 2
-#define fcmd_rmdir 3
-#define fcmd_fsck  4
+;// #define FDS_REG           $4000
+;// #define FDS_RAM           $6000
+;// #define FDS_BIOS          $e000
+;// #define FDS_VECTOR        $dff6
+;// #define FDS_VECTOR_CTRL   $0100
 
-#define fsmb_major 0
-#define fsmb_minor 1
-#define fsmb_rdcnt 2
-#define fsmb_wrcnt 3
-#define fsmb_flags 4
-#  define fflags_read  $80  ; stream is readable
-#  define fflags_write $40  ; stream is writable
+;// FDS registers
+#define FDS_TIMER_LO        $4020
+#define FDS_TIMER_HI        $4021
+#define FDS_TIMER_CTRL      $4022
+#define FDS_IO_ENABLE       $4023
+#define FDS_WRITE_DATA      $4024
+#define FDS_CTRL            $4025
+#define FDS_WRITE_EXT       $4026
+#define FDS_DISK_STATUS     $4030
+#define FDS_READ_DATA       $4031
+#define FDS_DRIVE_STATUS    $4032
+#define FDS_READ_EXT        $4033
 
-#define psmb_otherid 5 ; SMB-ID of other end of pipe
-#define psmb_flags 6
-#  define pflags_large $80  ; SMB holds pointer to data-pages
-#  define pflags_full  $40  ; pipe-buffer is full
-#  define pflags_empty $20  ; pipe-buffer is empty
-#  define pflags_wrwait $10 ; writing process is waiting for buffer space
-#  define pflags_rdwait $08 ; reading process is waiting for data
-#define psmb_rdpos 7
-#define psmb_wrpos 8
-#define psmb_rdptr 9
-#define psmb_wrptr 10
+;// FDS register bit masks
+#define FDS_TIMER_CTRL_E    %00000010 ;// Timer IRQ Enabled
+#define FDS_TIMER_CTRL_R    %00000001 ;// Timer IRQ Repeat Flag
 
-#define iecsmb_status 5
-#  define iecstatus_devnotpresent $80
-#  define iecstatus_eof           $40
-#  define iecstatus_timeout       $20
-#define iecsmb_secadr 6
-#define iecsmb_dirstate 7
+#define FDS_IO_ENABLE_S    %00000010 ;// Enable sound I/O registers
+#define FDS_IO_ENABLE_D    %00000001 ;// Enable disk I/O registers
 
-#define fdssmb_index 5      ; file index (which file to access)
-#define fdssmb_offset 6     ; data offset (which byte to access)
-#define fdssmb_offset_lo 6  ; low byte of the data offset
-#define fdssmb_offset_hi 7  ; high byte of the data offset
-#define fdssmb_bufend 8     ; SMB index where the buffer ends
-#define fdssmb_bufidx 9     ; current position in the buffer
-#define fdssmb_buffer 10    ; data buffered from disk
+#define FDS_CTRL_I    %10000000 ;// Interrupt Enabled (1: Generate an IRQ every time the byte transfer flag is raised)
+#define FDS_CTRL_S    %01000000 ;// Transfer Behavior
+#define FDS_CTRL_1    %00100000 ;// Always set to '1'
+#define FDS_CTRL_B    %00010000 ;// CRC Control (1: transfer CRC values)
+#define FDS_CTRL_M    %00001000 ;// Mirroring (0: vertical; 1: horizontal)
+#define FDS_CTRL_R    %00000100 ;// Transfer Mode (0: write; 1: read)
+#define FDS_CTRL_T    %00000010 ;// Transfer Reset (1: Reset transfer timing to the initial state)
+#define FDS_CTRL_D    %00000001 ;// Drive Motor Control (0: stop, 1: start)
 
-#define usersmb_ufunc 5
-#define fsuser_fgetc  1
-#define fsuser_fputc  2
-#define fsuser_fclose 3
+#define FDS_DISK_STATUS_I    %10000000 ;// Disk Data Read/Write Enable (1 when disk is readable/writeable)
+#define FDS_DISK_STATUS_E    %01000000 ;// End of Head (1 when disk head is on the most inner track)
+#define FDS_DISK_STATUS_B    %00010000 ;// CRC control (0: CRC passed; 1: CRC error)
+#define FDS_DISK_STATUS_T    %00000010 ;// Byte transfer flag. Set every time 8 bits have been transferred between the RAM adaptor & disk drive (service $4024/$4031). Reset when $4024, $4031, or $4030 has been serviced.
+#define FDS_DISK_STATUS_D    %00000001 ;// Timer Interrupt (1: an IRQ occurred)
+
+#define FDS_DRIVE_STATUS_P    %00000100 ;// Protect flag (0: Not write protected; 1: Write protected or disk ejected)
+#define FDS_DRIVE_STATUS_R    %00000010 ;// Ready flag (0: Disk readу; 1: Disk not ready)
+#define FDS_DRIVE_STATUS_S    %00000001 ;// Disk flag  (0: Disk inserted; 1: Disk not inserted)
+
+#define FDS_READ_EXT_B    %10000000 ;// Battery status (0: Voltage is low; 1: Good).
+
+;// FDS pseudo-interrupt vectors
+#define FDS_NMI1    $dff6
+#define FDS_NMI2    $dff8
+#define FDS_NMI3    $dffa
+#define FDS_RESET   $dffc
+#define FDS_IRQ     $dffe
+
+;// FDS pseudo-interrupt vectors control
+#define FDS_NMI_CTRL      $0100
+#define FDS_IRQ_CTRL      $0101
+#define FDS_RESET_CTRL    $0102 ;// 2 bytes
+
+;// FDS pseudo-interrupt vectors control bit masks
+#define FDS_NMI_CTRL_D    %00000000 ;// BIOS disable NMI
+#define FDS_NMI_CTRL_1    %01000000 ;// Disk game NMI vector #1
+#define FDS_NMI_CTRL_2    %10000000 ;// Disk game NMI vector #2
+#define FDS_NMI_CTRL_3    %11000000 ;// Disk game NMI vector #3
+
+#define FDS_IRQ_CTRL_S    %00000000 ;// BIOS disk skip bytes
+#define FDS_IRQ_CTRL_X    %01000000 ;// BIOS disk transfer
+#define FDS_IRQ_CTRL_A    %10000000 ;// BIOS acknowledge and delay
+#define FDS_IRQ_CTRL_G    %11000000 ;// Disk game IRQ vector
+
+#define FDS_RESET_CTRL_B    $00 ;// BIOS RESET
+#define FDS_RESET_CTRL_1    $35 ;// Disk game RESET vector
+#define FDS_RESET_CTRL_2    $53 ;// Disk game RESET vector
+
+;// FDS BIOS data addresses
+#define fds_write_ext_mirror     $f9
+#define fds_ctrl_mirror          $fa
+#define fds_joypad1_mirror       $fb
+#define fds_ppu_scroll_y_mirror  $fc
+#define fds_ppu_scroll_x_mirror  $fd
+#define fds_ppu_mask_mirror      $fe
+#define fds_ppu_ctrl_mirror      $ff
+
+;// FDS BIOS functions
+
+;// function: fds_delay_ms
+;// <  Y = milliseconds to delay
+;// changes: X, Y
+#define fds_delay_ms $e153
+
 #endif
-
-#define DIRSTRUCT_LEN 29 ; max size of dirstruct (including filename)
-#define MAX_FILENAME  17 ; max length of filename (not incl. 0 termination)

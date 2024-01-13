@@ -47,7 +47,13 @@
 #define iecsmb_secadr 6
 #define iecsmb_dirstate 7
 
-;// TODO: define fdssmb_* stuff as needed.
+#define fdssmb_index 5      ; file index (which file to access)
+#define fdssmb_offset 6     ; data offset (which byte to access)
+#define fdssmb_offset_lo 6  ; low byte of the data offset
+#define fdssmb_offset_hi 7  ; high byte of the data offset
+#define fdssmb_bufend 8     ; SMB index where the buffer ends
+#define fdssmb_bufidx 9     ; current position in the buffer
+#define fdssmb_buffer 10    ; data buffered from disk
 
 #define usersmb_ufunc 5
 #define fsuser_fgetc  1
