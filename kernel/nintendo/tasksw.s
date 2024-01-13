@@ -33,11 +33,12 @@
 
 
 _checktimer:
-		; we're using the APU frame counter as our timer.
-		lda APU_STATUS
-		; check if the IRQ was caused by the APU frame counter.
-		and #%01000000
-		beq _irq_end ; branch if the IRQ was not caused by the frame counter.
+		; no longer using the APU frame counter as our timer.
+		; switched to using an actual timer for better accuracy.
+		lda FDS_DISK_STATUS ; reading the disk status register will acknowledge the IRQ.
+		; check if the IRQ was caused by the timer.
+		and #FDS_DISK_STATUS_D
+		beq _irq_end ; branch if the IRQ was not caused by the timer.
 
 		inc  lk_systic ; system ticks (overflow after 72.8h)
 		bne  +

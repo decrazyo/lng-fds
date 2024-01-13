@@ -83,8 +83,6 @@ start:
 
 		;; set pointer to new interrupt routine
 #ifdef HAVE_FDS
-		lda  #$ff
-
 		; the FDS BIOS has 3 built in IRQ handlers and 1 redefinable IRQ handler.
 		; the value in FDS_IRQ_CTRL will control which IRQ handler is executed.
 		; FDS_IRQ_CTRL == #%00xxxxxx -> BIOS disk skip bytes
@@ -95,7 +93,6 @@ start:
 		ldy  #>lkf_irq_handler
 		stx  FDS_IRQ
 		sty  FDS_IRQ+1
-		sta  FDS_IRQ_CTRL
 
 		; the FDS BIOS supports 3 redefinable NMI handlers.
 		; we will install the kernel NMI handler for all 3. why not.
@@ -112,10 +109,9 @@ start:
 		sty  FDS_NMI2+1
 		stx  FDS_NMI3
 		sty  FDS_NMI3+1
-		sta  FDS_NMI_CTRL
 
 		; the FDS BIOS has a built in RESET handler and a redefinable RESET handler.
-		; the value in FDS_RESET_CTRL will control which IRQ handler is executed.
+		; the value in FDS_RESET_CTRL will control which RESET handler is executed.
 		; if FDS_RESET_CTRL == #$35 and FDS_RESET_CTRL+1 == #$53
 		; then FDS_RESET is executed.
 		; otherwise the FDS BIOS RESET handler is executed.
@@ -123,9 +119,11 @@ start:
 		ldy  #>lkf_panic
 		stx  FDS_RESET
 		sty  FDS_RESET+1
-		lda  #$35
+		; handle this here and now instead of in "initirq.s".
+		; never know when a kernel panic might happen.
+		lda  #FDS_RESET_CTRL_1
 		sta  FDS_RESET_CTRL
-		lda  #$53
+		lda  #FDS_RESET_CTRL_2
 		sta  FDS_RESET_CTRL+1
 
 #else

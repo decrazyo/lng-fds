@@ -168,6 +168,12 @@ cons_out:
 		; save char
 		sta cchar
 
+		; TODO: improve this.
+		; the FDS BIOS changes PPU_CTRL to it's default value during RESET.
+		; this is a quick and dirty hack to make kernel panics due to RESET behave correctly.
+		lda #%10000000
+		sta PPU_CTRL
+
 		lda #0
 		sta tmpzp ; high byte
 		lda csry
