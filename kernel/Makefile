@@ -2,7 +2,9 @@
 
 # List of modules
 ifeq "$(MACHINE)" "nintendo"
-    MODULES=
+	# TODO: refactor this
+	# we don't need any module, just the dependencies.
+    MODULES=none
 else ifeq "$(MACHINE)" "atari"
 	MODULES=
 else

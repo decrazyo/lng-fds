@@ -43,7 +43,7 @@
 ;// this forces kernel to load sh and execute lunixrc script upon boot
 ;// instead of executing built-in microshell
 ;// TODO: implement HAVE_INITSCRIPT once we have a filesystem driver.
-;#define HAVE_INITSCRIPT
+#define HAVE_INITSCRIPT
 
 
 ;// Misc stuff

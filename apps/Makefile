@@ -2,6 +2,9 @@
 
 VPATH=../include
 
+ifeq "$(MACHINE)" "nintendo"
+	APPS=sh ls cat pwd ps
+else
 # list of applications
 APPS=testapp microterm ps lsmod sh wc getty sleep cat tee uuencode uudecode \
      232echo 232term sliptst telnet kill rm ls connd ftp buf cp tcpipstat \
@@ -11,6 +14,7 @@ APPS=testapp microterm ps lsmod sh wc getty sleep cat tee uuencode uudecode \
 
 # list of applications that must be linked against libstd
 LAPPS=amalloc date ciartc hextype smwrtc dcf77 ide64rtc
+endif
 
 all : $(APPS) $(LAPPS)
 

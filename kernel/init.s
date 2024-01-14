@@ -294,7 +294,11 @@ appstruct2:
 
 ;;; strings
 
+#ifdef HAVE_FDS
+pwd_default:	.text "PWD=/fds0",0
+#else
 pwd_default:	.text "PWD=/disk8",0
+#endif
 startup_txt:	.text $0a,"Init v0.1",$0a,0
 error_txt:	.text "? (l)oad command / e(x)it+reboot",$0a,0
 tmp_page:	.buf 1
