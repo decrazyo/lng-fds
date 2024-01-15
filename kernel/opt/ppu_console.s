@@ -18,9 +18,9 @@ cons_clear:
 		and ~PPU_MASK_b
 		sta PPU_MASK
 
+		; set VRAM address
 		lda #$20
 		sta PPU_ADDR
-		; TODO: determine the low byte of the address based on the active console
 		lda #0
 		sta PPU_ADDR
 
@@ -33,8 +33,11 @@ cons_clear:
 		dex
 		bne -
 
-		lda #0
+		jsr cons_showcsr
+
+		lda ppu_scroll_x
 		sta PPU_SCROLL
+		lda ppu_scroll_y
 		sta PPU_SCROLL
 
 		; restore previous rendering state.
@@ -98,24 +101,31 @@ cons_csrright:
 
 cons_scroll_up:
 		; disable rendering.
-		lda ppu_mask
-		and ~PPU_MASK_b
-		sta PPU_MASK
+		;lda ppu_mask
+		;and ~PPU_MASK_b
+		;sta PPU_MASK
 
-		; TODO: implement scrolling.
-		; lda x_scroll
-		; sta PPU_SCROLL
-		; lda y_scroll
-		; sta PPU_SCROLL
+		;lda ppu_scroll_x
+		;sta PPU_SCROLL
+		lda ppu_scroll_y
+		clc
+		adc #8
+		cmp #240
+		bcc +
+		lda #0
+	+	sta ppu_scroll_y
+		;sta PPU_SCROLL
 
-		; restore previous rendering state.
-		lda ppu_mask
-		sta PPU_MASK
+		;; restore previous rendering state.
+		;lda ppu_mask
+		;sta PPU_MASK
 		rts
 
 
 cons_showcsr:
-		; TODO: implement this.
+		jsr csr_to_vram_addr
+		lda #"_"
+		sta PPU_DATA
 		rts
 ;		bit  cflag
 ;		bvs  +					; already shown
@@ -136,6 +146,9 @@ cons_showcsr:
 ;	+	rts
 
 cons_hidecsr:
+		jsr csr_to_vram_addr
+		lda #" "
+		sta PPU_DATA
 		; TODO: implement this.
 		rts
 ;		bit  cflag
@@ -164,22 +177,14 @@ console_toggle:
 		; only supporting one console for now.
 		rts
 
-cons_out:
-		; save char
-		sta cchar
 
-		; TODO: improve this.
-		; the FDS BIOS changes PPU_CTRL to it's default value during RESET.
-		; this is a quick and dirty hack to make kernel panics due to RESET behave correctly.
-		lda #%10000000
-		sta PPU_CTRL
-
+csr_to_vram_addr:
 		lda #0
 		sta tmpzp ; high byte
 		lda csry
 		sta tmpzp+1 ; low byte
 
-		; multiply cursor y by 32 tiles per row (left shift by 5)
+		; multiply cursor y by 32 tiles per row.
 		ldx #5
 	-	asl tmpzp+1
 		rol tmpzp
@@ -197,59 +202,101 @@ cons_out:
 		adc #$20
 		sta tmpzp
 
-		; disable rendering.
-		lda ppu_mask
-		and ~PPU_MASK_b
-		sta PPU_MASK
-
-		; set VRAM write address
 		lda tmpzp
 		sta PPU_ADDR
 		lda tmpzp+1
 		sta PPU_ADDR
 
-		; write char to VRAM
-		lda cchar
-		sta PPU_DATA
+		rts
 
-		; reset scrolling.
-		lda #0
-		sta PPU_SCROLL
-		sta PPU_SCROLL
 
-		; restore previous rendering state.
+cons_out:
+		tay ; save the character for later.
+
+		; disable rendering.
 		lda ppu_mask
+		and ~PPU_MASK_b
 		sta PPU_MASK
 
-		lda cchar
-		cmp #$0a ; \n
-		bne +
-		lda #31
-		sta csrx
+		jsr cons_hidecsr
+
+		cpy #"\n"
+		beq _new_line ; branch if the character is a new line.
+
+		; write char to VRAM at cursor position.
+		jsr csr_to_vram_addr
+		sty PPU_DATA
 
 		; advance the cursor.
-	+	inc csrx
+		inc csrx
 		lda csrx
-		cmp #32
-		bne +
+		cmp #size_x
+		bne _cons_out_done; branch if we haven't reached the end of a line.
 
-		; carriage return if needed.
+_new_line:
+		; carriage return.
 		lda #0
 		sta csrx
 
 		; line feed.
 		inc csry
 		lda csry
-		cmp #30
-		bne +
+		cmp #size_y
+		bne + ; branch if we haven't reached the last line in VRAM.
 
-		; wrap around if needed.
+		; wrap the cursor around to the start of VRAM.
 		lda #0
 		sta csry
 
-		; TODO: scroll the screen instead of just wrapping to the top of the screen.
+		; multiply the cursor y position by 8 pixels per line.
+	+	asl a
+		asl a
+		asl a
+		cmp ppu_scroll_y
+		bne _cons_out_done ; branch if we don't need to scroll yet.
 
-	+	rts
+		; set VRAM write address to cursor position.
+		jsr csr_to_vram_addr
+
+		; clear the next line before scrolling to it.
+		lda #" "
+		ldx csrx
+	-	sta PPU_DATA ; VRAM address increments after each write.
+		inx
+		cpx #size_x
+		bne -
+
+		; compute the new scroll position to display the next line.
+		lda ppu_scroll_y
+		clc
+		adc #8 ; tile size in pixels.
+		cmp #240 ; screen height in pixels. (30 tiles x 8 pixels per tile)
+		bne +
+		lda #0
+	+	sta ppu_scroll_y
+
+_cons_out_done:
+		jsr cons_showcsr
+
+		; set scrolling position.
+		lda ppu_scroll_x
+		sta PPU_SCROLL
+		lda ppu_scroll_y
+		sta PPU_SCROLL
+
+		; the FDS BIOS changes various registers to their default values during RESET.
+		; we're changing them here to make kernel panics due to RESET print correctly.
+		lda ppu_ctrl
+		sta PPU_CTRL
+		lda tmp_fds_ctrl
+		and #~FDS_CTRL_M
+		sta FDS_CTRL
+
+		; restore previous rendering state.
+		lda ppu_mask
+		sta PPU_MASK
+
+		rts
 
 
 ; TODO: assess how much of the following is actually needed.
@@ -286,6 +333,8 @@ ypos_table_hi:
 ;;; ZEROpage: ppu_addr_lo 1
 ;;; ZEROpage: ppu_mask 1
 ;;; ZEROpage: ppu_ctrl 1
+;;; ZEROpage: ppu_scroll_y 1
+;;; ZEROpage: ppu_scroll_x 1
 
 ;mapl:			.byte 0
 ;maph:			.byte 0
@@ -300,6 +349,8 @@ ypos_table_hi:
 ;ppu_addr_lo:	.byte 0
 ;ppu_mask:		.byte 0
 ;ppu_ctrl:		.byte 0
+;ppu_scroll_y:		.byte 0
+;ppu_scroll_x:		.byte 0
 
 ;esc_flag:		.byte 0			; escape-statemachine-flag
 ;esc_parcnt:		.byte 0			; number of parameters read

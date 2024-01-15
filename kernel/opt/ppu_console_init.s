@@ -8,6 +8,11 @@
 ; (and set lk_consmax value)
 console_init:
 
+		; set mirroring mode to vertical
+		lda tmp_fds_ctrl
+		and #~FDS_CTRL_M
+		sta FDS_CTRL
+
 		; the PPU has enough VRAM for 2 consoles.
 		; we'll just use a single console for now.
 		lda  #1
