@@ -95,13 +95,15 @@ binaries: all
 	-mkdir $(BINDIR)
 	-cp kernel/boot.$(MACHINE) kernel/lunix.$(MACHINE) $(MODULES:%=kernel/modules/%) $(BINDIR)
 
-nintendodisc: nintendopackage
-	mkfds -# -i -b 4 lunix.fds pkg/kyodaku.bin pkg/ascii.bin pkg/reset.bin pkg/boot.bin pkg/lunix.bin pkg/sh.bin pkg/ls.bin pkg/cat.bin pkg/pwd.bin pkg/ps.bin pkg/hello.bin
+mesen: nintendodisc
 	# mesen label files
 	-rm ./lunix.mlb
 	sed -nE 's/#define\s+(\w+)\s+([0-9]+).*/\2 \1/p' ./include/zp.h | xargs printf 'R:%x:%s\n' >> ./lunix.mlb
 	sed -nE 's/#define\s+(\w+)\s+\$$(.*)/\1 \2/p' ./include/ksym.h | awk '{ $$2 = sprintf("%d","0x" $$2) - "0x6000"; printf("W:%x:%s\n", $$2, $$1) }' >> ./lunix.mlb
+	mono ~/.local/bin/Mesen.exe ./lunix.fds &
 
+nintendodisc: nintendopackage
+	mkfds -# -i -b 4 lunix.fds pkg/kyodaku.bin pkg/ascii.bin pkg/reset.bin pkg/boot.bin pkg/lunix.bin pkg/sh.bin pkg/ls.bin pkg/cat.bin pkg/pwd.bin pkg/ps.bin pkg/hello.bin
 
 nintendopackage: binaries
 	-mkdir pkg

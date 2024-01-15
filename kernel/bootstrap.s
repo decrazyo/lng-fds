@@ -402,6 +402,18 @@ noide64_txt:	.text "Kernel panic: IDE64 not detected",$0a
 	+
 #endif
 
+		;; use decimal mode to detect Ricoh 2A0x CPU.
+		sed
+		lda #$09
+		clc
+		adc #01
+		cmp $10
+		beq +
+		lda  lk_archtype
+		ora  #larchf_2a0x
+		sta  lk_archtype
+	+	cli
+
 		;; spawn init task		
 		lda  #0
 		sta  userzp
@@ -471,6 +483,8 @@ txt_c128:
 		.text "Commodore 128",0
 txt_atari:
 		.text "Atari",0
+txt_nintendo:
+		.text "Famicom/NES",0
 txt_pal:
 		.text " (PAL)",0
 txt_ntsc:
@@ -489,12 +503,16 @@ print_machine_type:
 		beq  ++
 		cmp  #larch_atari
 		beq  +++
-		bne  ++++
+		cmp  #larch_nintendo
+		beq  ++++
+		bne  +++++
 	+	ldy  #txt_c64-txt_c64
 		SKIP_WORD
 	+	ldy  #txt_c128-txt_c64
 		SKIP_WORD
 	+	ldy  #txt_atari-txt_c64
+		SKIP_WORD
+	+	ldy  #txt_nintendo-txt_c64
 		jsr  mout
 
 	+	lda  lk_archtype
@@ -510,7 +528,12 @@ print_machine_type:
 		bne  mout
 		ldy  #txt_60hz-txt_c64
 #else
+		; assume that frequency matches the video standard.
+		lda  lk_archtype
 		ldy  #txt_50hz-txt_c64
+		and  #larchf_pal
+		bne  mout
+		ldy  #txt_60hz-txt_c64
 #endif
 mout:		lda  txt_c64,y
 		beq  +

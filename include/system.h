@@ -140,10 +140,12 @@
 #define lk_modroot   SYSTEM_MEMORY+$ed    ;// root of linked list of modules (16bit)
 #define lk_consmax   SYSTEM_MEMORY+$ef    ;// absolute number of consoles
 #define lk_archtype  SYSTEM_MEMORY+$f0    ;// machine architecture
-#  define larchf_type     %00000011 ;// type of machine
+#  define larchf_type     %00000111 ;// type of machine
 #   define larch_c64       0
 #   define larch_c128      1
 #   define larch_atari     2
+#   define larch_nintendo  3
+#  define larchf_2a0x     %00001000 ;// flag for RP2A0x CPU (no decimal mode)
 #  define larchf_8500     %00010000 ;// flag for 85xx (not 65xx) CPU
 #  define larchf_pal      %00100000 ;// flag for PAL (not NTSC) video hardware
 #  define larchf_reu      %01000000 ;// flag for available REU hardware
