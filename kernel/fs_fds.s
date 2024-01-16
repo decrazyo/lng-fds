@@ -637,6 +637,14 @@ seek_y_bytes:
 ;; changes: A, X, Y
 ;; errors: lerr_ioerror, lerr_deverror
 start_xfer:
+		; disable NMI interrupts.
+		lda ppu_ctrl
+		and #~PPU_CTRL_V
+		sta PPU_CTRL
+		; disable timer interrupts.
+		ldx #FDS_TIMER_CTRL_R
+		stx FDS_TIMER_CTRL
+
 		jsr wait_for_ready
 
 		; TODO: figure out why this is needed.
@@ -685,9 +693,6 @@ check_block_type:
 ;; > A = first byte read from disk.
 ;; changes: X
 xfer_first_byte:
-		; disable inter interrupts.
-		ldx #FDS_TIMER_CTRL_R
-		stx FDS_TIMER_CTRL
 		; enable disk transfer IRQ handler.
 		ldx #FDS_IRQ_CTRL_X
 		stx FDS_IRQ_CTRL
@@ -824,6 +829,9 @@ xfer_done:
 		ora #FDS_CTRL_1 | FDS_CTRL_R | FDS_CTRL_T
 		sta tmp_fds_ctrl
 		sta FDS_CTRL
+		; restore NMI interrupts.
+		lda ppu_ctrl
+		sta PPU_CTRL
 		; use the kernel IRQ handler again.
 		lda #FDS_IRQ_CTRL_G
 		sta FDS_IRQ_CTRL
