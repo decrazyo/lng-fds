@@ -15,7 +15,7 @@ console_init:
 		sta usage_count
 
 		; set mirroring mode to vertical
-		lda tmp_fds_ctrl
+		lda fds_ctrl
 		and #~FDS_CTRL_M
 		sta FDS_CTRL
 

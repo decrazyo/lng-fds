@@ -432,7 +432,7 @@ cons_out:
 
 		; the FDS BIOS changes various registers to their default values during RESET.
 		; we're changing this here to make kernel panics due to RESET print correctly.
-		lda tmp_fds_ctrl
+		lda fds_ctrl
 		and #~FDS_CTRL_M
 		sta FDS_CTRL
 

@@ -74,7 +74,7 @@ key_delay:		.byte $00
 
 ; TODO: scan the joypads.
 
-; TODO: scan the keyboard at a more reasonable speed.
+; TODO: check if a keyboard is actually connected.
 
 ; interrupt routine, that scans for keys
 keyb_scan:

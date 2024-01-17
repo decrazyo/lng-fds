@@ -1,26 +1,19 @@
 
 keyboard:
-	scan the keyboard at a more reasonable speed.
-	handle shift keys.
 	handle kana key.
 	scan joypads.
 
 display:
-	scroll the console when we reach the bottom.
 	make the driver NMI-aware.
-	show/hide the cursor.
 	add kana characters to the pattern table.
-	use vertical mirroring.
 	add a second console.
 
 disk:
-	make a read-only driver for the native FDS partition (the FDS BIOS probably won't help with this).
+	improve read-only partition driver performance
 	design something like a FAT or EXT partition that can be stored after the native FDS partition.
 	make a read-write driver for the aforementioned partition.
 
 other:
-	make sure the interrupt control flags (addresses $0100 - $0103) are maintained during task switching.
 	patch all apps that use the "sed" instruction.
-	update system identification code.
-	bypass the license screen.
+	refactor Makefiles
 	general code cleanup and initialization improvements.

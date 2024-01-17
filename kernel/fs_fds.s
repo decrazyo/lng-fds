@@ -560,9 +560,9 @@ end_block_read:
 		jsr xfer_fail_on_ne
 
 		; set CRC control.
-		lda tmp_fds_ctrl
+		lda fds_ctrl
 		ora #FDS_CTRL_B
-		sta tmp_fds_ctrl
+		sta fds_ctrl
 		sta FDS_CTRL
 
 		jsr xfer_byte ; second CRC byte.
@@ -579,11 +579,11 @@ end_block_read:
 ;;
 ;; errors: lerr_deverror
 check_disk_set:
-		lda tmp_fds_ctrl
+		lda fds_ctrl
 		; disable interrupts, transfer behavior, and CRC control.
 		and #~(FDS_CTRL_I | FDS_CTRL_S | FDS_CTRL_B)
 		ora #FDS_CTRL_R
-		sta tmp_fds_ctrl
+		sta fds_ctrl
 		sta FDS_CTRL
 
 		; return error if disk is not inserted.
@@ -678,9 +678,9 @@ check_block_type:
 
 		sta tmp_block_type ; expected block type.
 
-		lda tmp_fds_ctrl
+		lda fds_ctrl
 		ora #FDS_CTRL_S ; set transfer behavior.
-		sta tmp_fds_ctrl
+		sta fds_ctrl
 		sta FDS_CTRL
 
 		; throw error if block type is incorrect.
@@ -703,10 +703,10 @@ xfer_first_byte:
 		ldx #FDS_IRQ_CTRL_X
 		stx FDS_IRQ_CTRL
 		; enable disk transfer IRQ.
-		rol tmp_fds_ctrl
+		rol fds_ctrl
 		sec
-		ror tmp_fds_ctrl
-		ldx tmp_fds_ctrl
+		ror fds_ctrl
+		ldx fds_ctrl
 		stx FDS_CTRL
 ;; function: xfer_byte
 ;; wait for the disk to read a byte and return it.
@@ -738,9 +738,9 @@ wait_for_ready:
 		jsr fds_delay_ms
 
 		; check battery status.
-		lda tmp_fds_write_ext
+		lda fds_write_ext
 		ora #FDS_READ_EXT_B
-		sta tmp_fds_write_ext
+		sta fds_write_ext
 		sta FDS_WRITE_EXT
 
 		; throw error if batteries are low.
@@ -770,7 +770,7 @@ __wait_for_drive_ready:
 ;;
 ;; > A = current state of FDS_CTRL
 stop_motor:
-		lda tmp_fds_ctrl
+		lda fds_ctrl
 		; retain mirroring
 		and #FDS_CTRL_M
 		; set transfer mode read and transfer reset
@@ -791,7 +791,7 @@ start_motor:
 		sta FDS_CTRL
 		; unset transfer reset.
 		and #~(FDS_CTRL_T) & $ff
-		sta tmp_fds_ctrl
+		sta fds_ctrl
 		sta FDS_CTRL
 		rts
 
@@ -828,12 +828,12 @@ xfer_fail_on_cs:
 ;;
 ;; changes: A
 xfer_done:
-		lda tmp_fds_ctrl
+		lda fds_ctrl
 		; retain mirroring and drive motor
 		and #FDS_CTRL_M | FDS_CTRL_D
 		; set transfer mode read and transfer reset
 		ora #FDS_CTRL_1 | FDS_CTRL_R | FDS_CTRL_T
-		sta tmp_fds_ctrl
+		sta fds_ctrl
 		sta FDS_CTRL
 		; restore NMI interrupts.
 		lda ppu_ctrl
@@ -924,10 +924,10 @@ cbm2unix:
 
 ;;; ----------------------------- variables -------------------------------
 
+; TODO: consolidate variables.
+; TODO: move some/all of these to tmpzp
 ;;; ZEROpage: tmp_block_type  1
 ;;; ZEROpage: tmp_current_index  1
-;;; ZEROpage: tmp_fds_ctrl  1
-;;; ZEROpage: tmp_fds_write_ext  1
 ;;; ZEROpage: tmp_file_count  1
 ;;; ZEROpage: tmp_file_index  1
 ;;; ZEROpage: tmp_size_lo  1
@@ -935,5 +935,9 @@ cbm2unix:
 ;;; ZEROpage: tmp_seek_hi  1
 ;;; ZEROpage: tmp_stack  1
 ;;; ZEROpage: tmp_file_handle  1
+
+; do not move these to tmpzp
+;;; ZEROpage: fds_ctrl  1
+;;; ZEROpage: fds_write_ext  1
 
 filename: .buf 9 ; 8 character file names + a null terminator.
