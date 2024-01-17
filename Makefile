@@ -108,7 +108,7 @@ nintendodisc: nintendopackage
 nintendopackage: binaries
 	-mkdir pkg
 	mkbin -n 'KYODAKU-' -a 0x2800 -t 2 pkg/kyodaku.bin $(BINDIR)/kyodaku.nam
-	mkbin -n 'ASCII' -a 0x0000 -t 1 pkg/ascii.bin $(BINDIR)/ascii.chr
+	mkbin -n 'ASCII' -a 0x1000 -t 1 pkg/ascii.bin $(BINDIR)/ascii.chr
 	mkbin -n 'RESET' -a 0xdffc -s 2 pkg/reset.bin $(BINDIR)/boot.nintendo
 	mkbin -n 'BOOT' pkg/boot.bin $(BINDIR)/boot.$(MACHINE)
 	mkbin -n 'LUNIX' pkg/lunix.bin $(BINDIR)/lunix.$(MACHINE)

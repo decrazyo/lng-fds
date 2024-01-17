@@ -53,6 +53,14 @@
 ;#define ALWAYS_SZU
 
 
+;// Use APU as a timer
+;// ------------------
+;// enabling this will use the audio processing unit (APU) as a timer
+;// instead of the dedicated timer that's built into the RAM adapter.
+;// this could be useful if you need the timer for some other precise timing.
+;#define APU_AS_TIMER
+
+
 ;//---------------------------------------------------------------------------
 ;// end of configurable section
 

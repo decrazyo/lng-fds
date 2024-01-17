@@ -6,10 +6,6 @@
 		lda #FDS_NMI_CTRL_3
 		sta FDS_NMI_CTRL
 
-		; enable full background rendering.
-		lda #PPU_MASK_b | PPU_MASK_m
-		sta PPU_MASK
-
 		; enable NMI.
 		lda #PPU_CTRL_V
 		sta PPU_CTRL
@@ -23,6 +19,13 @@
 		and #larchf_pal
 		bne +
 
+#ifdef APU_AS_TIMER
+		; enable the APU frame counter interrupt.
+		; this should generates IRQs every 1/60 second.
+		; not quite the 1/64 second that the common kernel code expects.
+		lda #0
+		sta APU_FRAME
+#else
 		; NES/Famicom (NTSC) CPU @ 1.789773 MHz
 		; 1789773 hz / 64 = 27965.203125
 		ldx #<27965
@@ -40,3 +43,4 @@
 		; enable timer IRQ and reload the timer after every interrupt.
 		lda #FDS_TIMER_CTRL_E | FDS_TIMER_CTRL_R
 		sta FDS_TIMER_CTRL
+#endif

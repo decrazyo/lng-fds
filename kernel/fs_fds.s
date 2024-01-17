@@ -581,7 +581,7 @@ end_block_read:
 check_disk_set:
 		lda tmp_fds_ctrl
 		; disable interrupts, transfer behavior, and CRC control.
-		and #~(FDS_CTRL_I | FDS_CTRL_S | FDS_CTRL_B) & $ff
+		and #~(FDS_CTRL_I | FDS_CTRL_S | FDS_CTRL_B)
 		ora #FDS_CTRL_R
 		sta tmp_fds_ctrl
 		sta FDS_CTRL
@@ -641,9 +641,15 @@ start_xfer:
 		lda ppu_ctrl
 		and #~PPU_CTRL_V
 		sta PPU_CTRL
+
 		; disable timer interrupts.
+#ifdef APU_AS_TIMER
+		ldx #APU_FRAME_D
+		stx APU_FRAME
+#else
 		ldx #FDS_TIMER_CTRL_R
 		stx FDS_TIMER_CTRL
+#endif
 
 		jsr wait_for_ready
 
@@ -835,9 +841,16 @@ xfer_done:
 		; use the kernel IRQ handler again.
 		lda #FDS_IRQ_CTRL_G
 		sta FDS_IRQ_CTRL
+
 		; enable timer IRQs again.
+#ifdef APU_AS_TIMER
+		lda #0
+		sta APU_FRAME
+#else
 		lda #FDS_TIMER_CTRL_E | FDS_TIMER_CTRL_R
 		sta FDS_TIMER_CTRL
+#endif
+
 		txa
 		rts
 

@@ -32,5 +32,5 @@ keyboard_init:
 	+	rts
 
 _startmsg:
-		.text "Family BASIC Keyboard module version 0.1"
+		.text "Family BASIC Keyboard module version 0.2"
 		.byte $0a,$00

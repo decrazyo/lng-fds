@@ -1,6 +1,8 @@
 
 .global keyb_scan
 
+#define KEY_HOLD_DELAY 10
+
 ; table for $e? keys
 locktab:
 		.byte keyb_rshift|keyb_lshift, keyb_ex1, keyb_ex2, keyb_ex3
@@ -40,30 +42,26 @@ locktab:
 #define f7_c            $f7
 #define f8_c            $f8
 
-; TODO: properly handle shift keys.
-#define lshift_c        dunno
-#define rshift_c        dunno
-
 _keytab_normal:
-		.byte  f8_c,return_c,"[","]",kana_c,rshift_c,yen_c,stop_c
+		.byte  f8_c,return_c,"[","]",kana_c,~keyb_rshift,yen_c,stop_c
 		.byte  f7_c,"@",":",";","_","/","-","^"
 		.byte  f6_c,"o","l","k",".",",","p","0"
 		.byte  f5_c,"i","u","j","m","n","9","8"
 		.byte  f4_c,"y","g","h","b","v","7","6"
 		.byte  f3_c,"t","r","d","f","c","5","4"
 		.byte  f2_c,"w","s","a","x","z","e","3"
-		.byte  f1_c,esc_c,"q",ctr_c,lshift_c,grph_c,"1","2"
+		.byte  f1_c,esc_c,"q",~keyb_ctrl,~keyb_lshift,grph_c,"1","2"
 		.byte  clr_home_c,arrow_up_c,arrow_right_c,arrow_left_c,arrow_down_c," ",del_c,ins_c
 
 _keytab_shift:
-		.byte  f8_c,return_c,"[","]",kana_c,rshift_c,yen_c,stop_c
+		.byte  f8_c,return_c,"[","]",kana_c,~keyb_rshift,yen_c,stop_c
 		.byte  f7_c,"@","*","+","_","?","=","^"
 		.byte  f6_c,"O","L","K",">","<","P","0"
 		.byte  f5_c,"I","U","J","M","N",")","("
 		.byte  f4_c,"Y","G","H","B","V","'","&"
 		.byte  f3_c,"T","R","D","F","C","%","$"
 		.byte  f2_c,"W","S","A","X","Z","E","#"
-		.byte  f1_c,esc_c,"Q",ctr_c,lshift_c,grph_c,"!",quote_c
+		.byte  f1_c,esc_c,"Q",~keyb_ctrl,~keyb_lshift,grph_c,"!",quote_c
 		.byte  clr_home_c,arrow_up_c,arrow_right_c,arrow_left_c,arrow_down_c," ",del_c,ins_c
 
 
@@ -71,21 +69,15 @@ key_data:		.byte $00
 keytab_offset:	.byte $00
 scan_delay:		.byte $00
 
+key_hold:		.byte $00
+key_delay:		.byte $00
+
 ; TODO: scan the joypads.
 
 ; TODO: scan the keyboard at a more reasonable speed.
 
 ; interrupt routine, that scans for keys
 keyb_scan:
-		; TODO: remove this
-		; this is a bit of a hack to slow down keyboard scanning.
-		; without this, keys are read so fast that the keyboard is functionally useless.
-		ldx scan_delay
-		beq +
-		dex
-		stx scan_delay
-		rts
-
 		; our current key table offset encodes where we are in the scanning process.
 	+	ldx keytab_offset
 
@@ -95,21 +87,13 @@ keyb_scan:
 		beq read_keyboard ; branch if we are at the start of a new column.
 
 		; we have data remaining from a previous iteration that needs to be processed.
-		; compute how many keys still need to be processed.
-		clc
-		sbc #4
-		eor #$ff
-		tay ; find_key expects this to be in Y.
-
-		lda key_data ; unprocessed key data.
 		jmp find_key ; TODO: make this an unconditional branch.
 
 ; read 4 bits of data from the keyboard
 read_keyboard:
-
 		; check if we have finished scanning the whole keyboard matrix.
 		cpx #71
-		bmi + ; branch if we haven't finished.
+		bmi get_nibble ; branch if we haven't finished.
 
 		; reset the keyboard to the 0th row, 0th column.
 		lda #$05
@@ -119,6 +103,7 @@ read_keyboard:
 		stx keytab_offset
 		rts
 
+get_nibble:
 		; select a column and row of the keyboard to read
 	+	txa
 		; use bit 2 of keytab_offset as the column select value.
@@ -136,44 +121,57 @@ read_keyboard:
 		; 1 == key pressed
 		; 0 == key released
 		eor #%00011110
-		bne + ; branch if at least 1 key is pressed. 
-
-		; no keys are pressed.
-		; account for the 4 unpressed keys and read the keyboard again.
-		txa
-		clc
-		adc #4
-		tax
-		jmp read_keyboard
-
 		; position key data in the low nibble for further processing.
 	+	lsr a
-		; number of keys left to check.
-		ldy #4
+		sta key_data
 
-; check the Y lowest bits of A for set bit.
 ; increment keytab_offset after each checked bit.
 ; buffer a key if a bit is set.
 find_key:
-		lsr a
-		bcs buffer_key ; branch if we found a pressed key.
+		lda _keytab_normal, x
+		bpl check_key_pressed ; branch if we need to handle a normal key.
+		cmp #(~keyb_lshift)-1
+		bcc check_key_pressed ; branch if this is a cursor or console key
+		; handle lshift, rshift, or ctrl
+		lsr key_data
+		bcc + ; branch if the key is not pressed.
+		eor #$ff
+		ora altflags
+		SKIP_WORD
+	+	and altflags
+		sta altflags
+		jmp find_next
+check_key_pressed:
+		lsr key_data
+		bcs check_key_held ; branch if we found a pressed key.
+		cmp key_hold
+		bne find_next
+		lda #0
+		sta key_hold
+find_next:
 		inx
-		dey
+		txa
+		and #%00000011
 		bne find_key ; branch if there is still key data to process
 		stx keytab_offset
 		jmp read_keyboard ; TODO: make this a unconditional branch.
 
-buffer_key:
-		inx
-		dey
-		beq + ; branch if there is no key data left to store.
-		sta key_data
-	+	stx keytab_offset
-		dex
+check_key_held:
+		cmp key_hold
+		bne buffer_key
 
-		; TODO: remove this
-		; set a delay before processing the next key.
-		lda #6
-		sta scan_delay
+		; the key was held down since the last time we scanned the keyboard.
+		; introduce a short delay before considering it to actually be pressed.
+		dec key_delay
+		bne find_next
+
+buffer_key:
+		sta key_hold
+		lda #KEY_HOLD_DELAY
+		sta key_delay
+
+		inx
+		stx keytab_offset
+		dex
 
 ; fall through to "_queue_key" in common kernel code.
