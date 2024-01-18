@@ -3,7 +3,7 @@
 VPATH=../include
 
 ifeq "$(MACHINE)" "nintendo"
-	APPS=sh ls cat pwd ps
+	APPS=sh ls cat pwd ps wc sleep kill meminfo uname more help env clear true false echo
 else
 # list of applications
 APPS=testapp microterm ps lsmod sh wc getty sleep cat tee uuencode uudecode \

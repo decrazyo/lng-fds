@@ -8,10 +8,13 @@ locktab:
 		.byte keyb_rshift|keyb_lshift, keyb_ex1, keyb_ex2, keyb_ex3
 
 #define dunno $7f
-#define clr_home_c      dunno
-#define ctr_c           dunno
-#define grph_c          dunno
+#define clr_c           dunno
+#define home_c          dunno
+#define ctr_c           ~keyb_ctrl
+#define grph_c          dunno ; TODO: make this alt
 #define ins_c           dunno
+#define lshift_c        ~keyb_lshift
+#define rshift_c        ~keyb_rshift
 
 ; TODO: make this a locking key that swaps which pattern table is being used.
 #define kana_c          dunno
@@ -43,26 +46,26 @@ locktab:
 #define f8_c            $f8
 
 _keytab_normal:
-		.byte  f8_c,return_c,"[","]",kana_c,~keyb_rshift,yen_c,stop_c
+		.byte  f8_c,return_c,"[","]",kana_c,rshift_c,yen_c,stop_c
 		.byte  f7_c,"@",":",";","_","/","-","^"
 		.byte  f6_c,"o","l","k",".",",","p","0"
 		.byte  f5_c,"i","u","j","m","n","9","8"
 		.byte  f4_c,"y","g","h","b","v","7","6"
 		.byte  f3_c,"t","r","d","f","c","5","4"
 		.byte  f2_c,"w","s","a","x","z","e","3"
-		.byte  f1_c,esc_c,"q",~keyb_ctrl,~keyb_lshift,grph_c,"1","2"
-		.byte  clr_home_c,arrow_up_c,arrow_right_c,arrow_left_c,arrow_down_c," ",del_c,ins_c
+		.byte  f1_c,esc_c,"q",ctr_c,lshift_c,grph_c,"1","2"
+		.byte  home_c,arrow_up_c,arrow_right_c,arrow_left_c,arrow_down_c," ",del_c,ins_c
 
 _keytab_shift:
-		.byte  f8_c,return_c,"[","]",kana_c,~keyb_rshift,yen_c,stop_c
+		.byte  f8_c,return_c,"[","]",kana_c,rshift_c,yen_c,stop_c
 		.byte  f7_c,"@","*","+","_","?","=","^"
 		.byte  f6_c,"O","L","K",">","<","P","0"
 		.byte  f5_c,"I","U","J","M","N",")","("
 		.byte  f4_c,"Y","G","H","B","V","'","&"
 		.byte  f3_c,"T","R","D","F","C","%","$"
 		.byte  f2_c,"W","S","A","X","Z","E","#"
-		.byte  f1_c,esc_c,"Q",~keyb_ctrl,~keyb_lshift,grph_c,"!",quote_c
-		.byte  clr_home_c,arrow_up_c,arrow_right_c,arrow_left_c,arrow_down_c," ",del_c,ins_c
+		.byte  f1_c,esc_c,"Q",ctr_c,lshift_c,grph_c,"!",quote_c
+		.byte  clr_c,arrow_up_c,arrow_right_c,arrow_left_c,arrow_down_c," ",del_c,ins_c
 
 
 key_data:		.byte $00

@@ -102,8 +102,26 @@ mesen: nintendodisc
 	sed -nE 's/#define\s+(\w+)\s+\$$(.*)/\1 \2/p' ./include/ksym.h | awk '{ $$2 = sprintf("%d","0x" $$2) - "0x6000"; printf("W:%x:%s\n", $$2, $$1) }' >> ./lunix.mlb
 	mono ~/.local/bin/Mesen.exe ./lunix.fds &
 
+# TODO: make packaging smarter. don't just hard-code everything.
 nintendodisc: nintendopackage
-	mkfds -# -i -b 4 lunix.fds pkg/kyodaku.bin pkg/ascii.bin pkg/reset.bin pkg/boot.bin pkg/lunix.bin pkg/sh.bin pkg/ls.bin pkg/cat.bin pkg/pwd.bin pkg/ps.bin pkg/hello.bin
+	mkfds -# -i -b 4 lunix.fds pkg/kyodaku.bin pkg/ascii.bin pkg/reset.bin pkg/boot.bin pkg/lunix.bin \
+pkg/sh.bin \
+pkg/ls.bin \
+pkg/cat.bin \
+pkg/pwd.bin \
+pkg/ps.bin \
+pkg/wc.bin \
+pkg/sleep.bin \
+pkg/kill.bin \
+pkg/meminfo.bin \
+pkg/uname.bin \
+pkg/more.bin \
+pkg/env.bin \
+pkg/clear.bin \
+pkg/true.bin \
+pkg/false.bin \
+pkg/echo.bin \
+pkg/hello.bin
 
 nintendopackage: binaries
 	-mkdir pkg
@@ -117,7 +135,19 @@ nintendopackage: binaries
 	mkbin -n 'cat' -a 0x0000 pkg/cat.bin apps/cat
 	mkbin -n 'pwd' -a 0x0000 pkg/pwd.bin apps/pwd
 	mkbin -n 'ps' -a 0x0000 pkg/ps.bin apps/ps
+	mkbin -n 'wc' -a 0x0000 pkg/wc.bin apps/wc
+	mkbin -n 'sleep' -a 0x0000 pkg/sleep.bin apps/sleep
+	mkbin -n 'kill' -a 0x0000 pkg/kill.bin apps/kill
+	mkbin -n 'meminfo' -a 0x0000 pkg/meminfo.bin apps/meminfo
+	mkbin -n 'uname' -a 0x0000 pkg/uname.bin apps/uname
+	mkbin -n 'more' -a 0x0000 pkg/more.bin apps/more
+	mkbin -n 'env' -a 0x0000 pkg/env.bin apps/env
+	mkbin -n 'clear' -a 0x0000 pkg/clear.bin apps/clear
+	mkbin -n 'true' -a 0x0000 pkg/true.bin apps/true
+	mkbin -n 'false' -a 0x0000 pkg/false.bin apps/false
+	mkbin -n 'echo' -a 0x0000 pkg/echo.bin apps/echo
 	mkbin -n 'hello' -a 0x0000 pkg/hello.bin $(BINDIR)/hello.txt
+
 
 cbmpackage : binaries
 	-mkdir pkg
