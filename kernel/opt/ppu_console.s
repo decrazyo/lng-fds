@@ -8,11 +8,12 @@
 		.global cons_home
 		.global cons_clear
 		.global cons_csr_show
+#ifdef MULTIPLE_CONSOLES
+		.global cons_select
+#endif
 
 #define ESC $1b
 
-
-; TODO: add support for 2 consoles
 
 ; TODO: if we're only using 1 console then use all if VRAM and horizontal mirroring.
 ;       that would allow us to scroll the screen back by 30 line.
@@ -24,6 +25,14 @@
 ;; changes: A, X
 cons_clear:
 		; set VRAM address
+
+#ifdef MULTIPLE_CONSOLES
+		lda cons_active
+		beq cons_clear_1
+		lda #$24
+		SKIP_WORD
+cons_clear_1:
+#endif
 		lda #$20
 		sta PPU_ADDR
 		lda #0
@@ -298,6 +307,27 @@ cons_esc_print:
 		rts
 
 
+;; function: cons_control
+;; handle control characters [$00,$1f].
+;; < Y = character to handle.
+;; > C = 0 : ok
+;;       1 : error
+;; changes: A, X, (and sometimes Y)
+cons_control:
+		cpy #$1b
+		beq cons_esc ; branch if this is an escape sequence.
+		cpy #"\n" ; LF. move down one line. treated as a CR LF.
+		beq cons_crlf
+		cpy #"\r" ; CR. move to beginning of line.
+		beq cons_cr
+		cpy #"\t" ; TAB. advance cursor by 4 spaces.
+		beq cons_tab
+		cpy #$08 ; DEL. erase character before the cursor. (backspace)
+		beq cons_del
+		sec
+		rts
+
+
 ; TODO: add support for this sequence.
 ;       <ESC>[#y;#xH   - cursor positioning (#y, #x default to 0)
 
@@ -382,24 +412,34 @@ _cons_esc_end:
 		rts
 
 
-;; function: cons_control
-;; handle control characters [$00,$1f].
-;; < Y = character to handle.
-;; > C = 0 : ok
-;;       1 : error
-;; changes: A, X, (and sometimes Y)
-cons_control:
-		cpy #$1b
-		beq cons_esc ; branch if this is an escape sequence.
-		cpy #"\n" ; LF. move down one line. treated as a CR LF.
-		beq cons_crlf
-		cpy #"\r" ; CR. move to beginning of line.
-		beq cons_cr
-		cpy #"\t" ; TAB. advance cursor by 4 spaces.
-		beq cons_tab
-		cpy #$08 ; DEL. erase character before the cursor. (backspace)
-		beq cons_del
+#ifdef MULTIPLE_CONSOLES
+cons_select:
+		cpx cons_active
+		beq _cons_select_ok ; branch if the correct console is already active.
+		cpx #2
+		bcs _cons_select_err ; branch if desired console is out of range.
+		stx cons_active
+
+		ldy #7
+	-	lda ppu_scroll_y-1, y
+		ldx cons_regbuf-1, y
+		sta cons_regbuf-1, y
+		stx ppu_scroll_y-1, y
+		dey
+		bne -
+_cons_select_ok:
+		clc
+		SKIP_BYTE
+_cons_select_err:
 		sec
+		rts
+#endif
+
+disable_rendering:
+		lda ppu_mask
+		and #~PPU_MASK_b
+		sta ppu_mask
+		sta PPU_MASK
 		rts
 
 
@@ -410,18 +450,21 @@ cons_control:
 ;; > C = 0 ; always succeeds.
 ;; changes: A, X, Y
 cons_out:
-		tay ; save the character for later.
+#ifdef MULTIPLE_CONSOLES
+		sta tmpzp
+		jsr cons_select
+		ldy tmpzp
+#else
+		tay
+#endif
 
-		; disable rendering
-		lda ppu_mask
-		and #~PPU_MASK_b
-		sta ppu_mask
-		sta PPU_MASK
+		jsr disable_rendering
 
 		jsr cons_csr_hide
 		jsr cons_out_impl
 		jsr cons_csr_show
 
+enable_rendering:
 		; PPU_SCROLL and PPU_CTRL needs to be reset after accessing PPU_DATA.
 		lda ppu_scroll_x
 		sta PPU_SCROLL
@@ -470,12 +513,45 @@ cons_out_special:
 		; advance the cursor.
 		jsr cons_csr_right
 		bcc _cons_out_done ; branch if the cursor was moved successfully.
+		; we shouldn't really just stop when hit the edge of the screen
+		; but with only 32 columns of text, i think we kind of need this...
 		jsr cons_crlf
 _cons_out_done:
 		rts
 
 
 console_toggle:
+#ifdef MULTIPLE_CONSOLES
+		beq do_toggle
+		bmi do_toggle
+		cmp #1
+		beq do_cons1
+		cmp #2
+		beq do_cons2
+		bne no_toggle
+
+do_cons1:
+		ldx #$00
+		txa
+		beq update_console
+do_cons2:
+		ldx #1
+		lda #$ff
+		bne update_console
+do_toggle:
+		lda #%00000001
+		eor cons_visible
+		tax
+		lda #$ff
+		eor ppu_scroll_x
+update_console:
+		sta ppu_scroll_x
+		stx cons_visible
+		jsr cons_select
+		jsr disable_rendering
+		jsr enable_rendering
+no_toggle:
+#endif
 		rts
 
 
@@ -521,6 +597,14 @@ csr_to_vram:
 		; add VRAM base address
 		clc
 		lda tmpzp
+
+#ifdef MULTIPLE_CONSOLES
+		ldx cons_active
+		beq csr_to_vram_1
+		adc #$24
+		SKIP_WORD
+csr_to_vram_1:
+#endif
 		adc #$20
 		sta tmpzp
 
@@ -536,8 +620,13 @@ csr_to_vram:
 
 ;;; ZEROpage: ppu_mask 1
 ;;; ZEROpage: ppu_ctrl 1
-;;; ZEROpage: ppu_scroll_y 1
+
+; variables to change when switching screen visibility
 ;;; ZEROpage: ppu_scroll_x 1
+
+; variables to store when switching screen output
+; keep these values together in memory
+;;; ZEROpage: ppu_scroll_y 1
 ;;; ZEROpage: csrx 1
 ;;; ZEROpage: csry 1
 ;;; ZEROpage: buc 1
@@ -545,13 +634,26 @@ csr_to_vram:
 ;;; ZEROpage: esc_flag 1
 ;;; ZEROpage: esc_arg_1 1
 
+
+#ifdef MULTIPLE_CONSOLES
+;;; ZEROpage: cons_visible 1
+;;; ZEROpage: cons_active 1
+#endif
+
 ; ppu_mask			.byte 0
 ; ppu_ctrl			.byte 0
-; ppu_scroll_y		.byte 0
 ; ppu_scroll_x		.byte 0
+; ppu_scroll_y		.byte 0
 ; csrx				.byte 0 ; cursor x position
 ; csry				.byte 0 ; cursor y position
 ; buc				.byte 0 ; byte under cursor
 ; cflag				.byte 0 ; cursor visibility flag
 ; esc_flag			.byte 0 ; escape sequence processing state
 ; esc_arg_1			.byte 0 ; escape sequence argument 1
+; cons_visible		.byte 0 ; reflects which console is currently visible
+; cons_active		.byte 0 ; reflects which console was written to last
+
+#ifdef MULTIPLE_CONSOLES
+; room for storing screen-variables
+cons_regbuf:		.buf 7
+#endif

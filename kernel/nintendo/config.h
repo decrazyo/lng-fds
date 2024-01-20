@@ -25,7 +25,7 @@
 ;// switch between consoles (this time just 2 consoles are available F1/F2 with
 ;// VIC or 6 consoles - F1/3/5/7/2/4 with VDC)
 ;// TODO: implement MULTIPLE_CONSOLES.
-;#define MULTIPLE_CONSOLES
+#define MULTIPLE_CONSOLES
 
 
 ;// .o65 file format support

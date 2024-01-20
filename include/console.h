@@ -53,7 +53,7 @@
 ;// TODO: add more defines
 #  define size_x	32
 #  define size_y	30
-#  define MAX_CONSOLES		1
+#  define MAX_CONSOLES		2
 #endif
 
 

@@ -637,11 +637,6 @@ seek_y_bytes:
 ;; changes: A, X, Y
 ;; errors: lerr_ioerror, lerr_deverror
 start_xfer:
-		; disable NMI interrupts.
-		lda ppu_ctrl
-		and #~PPU_CTRL_V
-		sta PPU_CTRL
-
 		; disable timer interrupts.
 #ifdef APU_AS_TIMER
 		ldx #APU_FRAME_D
@@ -650,6 +645,11 @@ start_xfer:
 		ldx #FDS_TIMER_CTRL_R
 		stx FDS_TIMER_CTRL
 #endif
+
+		; disable NMI interrupts.
+		lda ppu_ctrl
+		and #~PPU_CTRL_V
+		sta PPU_CTRL
 
 		jsr wait_for_ready
 

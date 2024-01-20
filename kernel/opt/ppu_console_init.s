@@ -7,8 +7,11 @@
 ; (and set lk_consmax value)
 console_init:
 		; the PPU has enough VRAM for 2 consoles.
-		; we'll just use a single console for now.
+#ifdef MULTIPLE_CONSOLES
+		lda  #MAX_CONSOLES
+#else
 		lda  #1
+#endif
 		sta  lk_consmax
 
 		lda #0 ; initialize fs_cons stuff
@@ -45,6 +48,28 @@ console_init:
 		sta ppu_ctrl
 		sta PPU_CTRL
 
+
+#ifdef MULTIPLE_CONSOLES
+		; init the second console
+		ldx #1
+		jsr lkf_cons_select
+
+		; clear the screen.
+		jsr  lkf_cons_clear
+
+		; PPU_ADDR should be pointing at the attribute table after clearing the screen.
+		; configure the whole screen to use palette 0.
+		ldx #64 ; attribute table length
+		lda #0
+	-	sta PPU_DATA
+		dex
+		bne -
+
+		; init the first console
+		ldx #0
+		jsr lkf_cons_select
+#endif
+
 		; clear the screen.
 		jsr  lkf_cons_clear
 
@@ -79,12 +104,7 @@ console_init:
 		; move cursor to the upper left corner of the screen.
 		jsr  lkf_cons_home
 
-		; initialize various console variables.
-		; X should be 0 after calling "lkf_cons_home"
-		stx cflag ; cursor not shown
-		stx buc
-		stx esc_flag
-
+		; display the cursor
 		jsr lkf_cons_csr_show
 
 		; finished setting up the PPU.
@@ -104,4 +124,4 @@ console_init:
 	+	rts
 
 start_text:
-		.text "PPU console (v0.2)",$0a,0
+		.text "PPU console (v0.3) @ VRAM $2000,$2400",$0a,0
