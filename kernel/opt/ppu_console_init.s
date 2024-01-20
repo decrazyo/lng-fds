@@ -124,4 +124,8 @@ console_init:
 	+	rts
 
 start_text:
+#ifdef MULTIPLE_CONSOLES
 		.text "PPU console (v0.3) @ VRAM $2000,$2400",$0a,0
+#else
+		.text "PPU console (v0.3) @ VRAM $2000",$0a,0
+#endif
