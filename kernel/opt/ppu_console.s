@@ -66,8 +66,6 @@ cons_home:
 ;; < Y = cursor y position
 ;; > C = 0 : ok
 ;;       1 : error
-;; changes: A
-;; changes: tmpzp
 cons_setpos:
 		cpx #size_x
 		bcs + ; branch if new cursor position is off the screen.
@@ -450,6 +448,9 @@ disable_rendering:
 ;; > C = 0 ; always succeeds.
 ;; changes: A, X, Y
 cons_out:
+		; we might use tmpzp so we'll disable task switching.
+		; kind of overkill but it's easy.
+		jsr locktsw
 #ifdef MULTIPLE_CONSOLES
 		sta tmpzp
 		jsr cons_select
@@ -484,7 +485,8 @@ enable_rendering:
 		ora #PPU_MASK_b
 		sta ppu_mask
 		sta PPU_MASK
-		rts
+		jmp unlocktsw
+		; jsr rts -> jmp
 
 
 ;; function: cons_out_impl
