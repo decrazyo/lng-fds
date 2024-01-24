@@ -448,9 +448,6 @@ disable_rendering:
 ;; > C = 0 ; always succeeds.
 ;; changes: A, X, Y
 cons_out:
-		; we might use tmpzp so we'll disable task switching.
-		; kind of overkill but it's easy.
-		jsr locktsw
 #ifdef MULTIPLE_CONSOLES
 		sta tmpzp
 		jsr cons_select
@@ -485,8 +482,7 @@ enable_rendering:
 		ora #PPU_MASK_b
 		sta ppu_mask
 		sta PPU_MASK
-		jmp unlocktsw
-		; jsr rts -> jmp
+		rts
 
 
 ;; function: cons_out_impl
