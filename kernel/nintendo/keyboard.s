@@ -79,6 +79,13 @@ key_delay:		.byte $00
 
 ; TODO: check if a keyboard is actually connected.
 
+; burn some cycles to give the keyboard time to settle.
+keyb_delay:
+		ldy #10
+	-	dey
+		bne -
+		rts
+
 ; interrupt routine, that scans for keys
 keyb_scan:
 		; our current key table offset encodes where we are in the scanning process.
@@ -101,6 +108,7 @@ read_keyboard:
 		; reset the keyboard to the 0th row, 0th column.
 		lda #$05
 		sta JOYPAD1
+		jsr keyb_delay ; this may not be strictly necessary but it's safer and only wastes a few cycles.
 		; reset keytab_offset to 0
 		ldx #0
 		stx keytab_offset
@@ -115,6 +123,7 @@ get_nibble:
 		; always set the keyboard enable bit.
 		ora #%00000100
 		sta JOYPAD1
+		jsr keyb_delay
 
 		; read 4 bits of key data from the keyboard.
 		lda JOYPAD2
