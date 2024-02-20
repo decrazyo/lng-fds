@@ -20,6 +20,9 @@ vblankwait1:
 
 		; We now have about 30,000 cycles to burn before the PPU stabilizes.
 		; we'll use it to identify our system.
+		lda #3 ; number of times to try system detection.
+countcycles:
+		ldx #0
 		ldy #0
 
 vblankwait2:
@@ -40,6 +43,19 @@ noincy:
 		; PAL NES     | 33247      | 12.005     | $0A  $D2 | $15  $A4
 		; Dendy       | 35464      | 12.005     | $0B  $8A | $17  $14
 
+		; if Y is in the expected range then we should be able to correctly identify the system.
+		cpy #$18
+		bcc sysid ; branch if we can identify the system.
+
+		; we'll try counting cycles again until we get a usable result
+		; or the maximum number of attempts is reached.
+		sec
+		sbc #1
+		cmp #0
+		beq isntsc ; branch if we have reached the max attempts. (assume NTSC since it's more likely).
+		bne countcycles ; otherwise, count cycles again.
+
+sysid:
 		; check if we encountered 2 vblanks...
 		tya
 		cmp #$10
@@ -53,9 +69,10 @@ nodiv2:
 		; NTSC FC/NES | 0
 		; PAL NES     | 1
 		; Dendy       | 2
-		; unknown     | 3+
-		beq +
+		; unknown     | 3+ (shouldn't be possible)
+		beq isntsc
 		lda #larchf_pal
-	+	ora #larch_nintendo
+isntsc:
+		ora #larch_nintendo
 		ora lk_archtype
 		sta lk_archtype
